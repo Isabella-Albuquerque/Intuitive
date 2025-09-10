@@ -20,7 +20,6 @@ public class Usuario {
     private Integer id;
 
     @Column(name ="email", unique = true)
-
     private String email;
 
     @Column(name = "nome")
