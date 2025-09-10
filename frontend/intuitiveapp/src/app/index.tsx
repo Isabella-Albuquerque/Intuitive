@@ -1,0 +1,190 @@
+import { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native'
+import { router } from 'expo-router'
+import { Button } from '../components/button'
+import { Input } from '../components/input'
+import { useAuth } from '../hooks/useAuth'
+
+import {
+    useFonts,
+    Poppins_300Light,
+    Poppins_300Light_Italic,
+    Poppins_400Regular,
+    Poppins_400Regular_Italic,
+    Poppins_500Medium,
+    Poppins_500Medium_Italic,
+    Poppins_700Bold,
+    Poppins_700Bold_Italic
+} from '@expo-google-fonts/poppins'
+
+export default function Login() {
+    const [fontsLoaded] = useFonts({
+        'Poppins-Light': Poppins_300Light,
+        'Poppins-LightItalic': Poppins_300Light_Italic,
+        'Poppins-Regular': Poppins_400Regular,
+        'Poppins-Italic': Poppins_400Regular_Italic,
+        'Poppins-Medium': Poppins_500Medium,
+        'Poppins-MediumItalic': Poppins_500Medium_Italic,
+        'Poppins-Bold': Poppins_700Bold,
+        'Poppins-BoldItalic': Poppins_700Bold_Italic,
+    })
+
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const { login, carregando } = useAuth()
+
+    if (!fontsLoaded) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#2e6480" />
+                <Text style={styles.loadingText}>Carregando...</Text>
+            </View>
+        )
+    }
+
+    const handleLogin = async () => {
+        // validações
+        if (!email || !password) {
+            Alert.alert('Erro', 'Por favor, preencha todos os campos')
+            return
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            Alert.alert('Erro', 'Por favor, insira um email válido')
+            return
+        }
+
+        const resultado = await login({ email, senha: password })
+
+        if (resultado.success) {
+            Alert.alert('Sucesso', 'Login realizado com sucesso!')
+            router.navigate("/tabs/home")
+        } else {
+            Alert.alert('Erro de login', resultado.error as string)
+        }
+    }
+
+    function handleRegister() {
+        router.navigate("/register")
+    }
+
+    function handleForgotPassword() {
+        router.navigate("/forgot-password")
+    }
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Image
+                    source={require('../../assets/images/Logo.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+            </View>
+
+            {/* forms de login */}
+            <View style={styles.form}>
+                <Input
+                    placeholder="E-mail"
+                    onChangeText={setEmail}
+                    value={email}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!carregando}
+                />
+
+                <Input
+                    placeholder="Senha"
+                    onChangeText={setPassword}
+                    value={password}
+                    secureTextEntry
+                    editable={!carregando}
+                />
+
+                <TouchableOpacity onPress={handleForgotPassword} disabled={carregando}>
+                    <Text style={[styles.forgotPassword, carregando && styles.disabledText, { fontFamily: 'Poppins-Regular' }]}>
+                        Esqueceu a senha?
+                    </Text>
+                </TouchableOpacity>
+
+                <Button
+                    title={carregando ? "Entrando..." : "Entrar"}
+                    onPress={handleLogin}
+                    style={styles.loginButton}
+                    disabled={carregando}
+                />
+            </View>
+
+            <View style={styles.footer}>
+                <Text style={styles.footerText}>Não tem uma conta? </Text>
+                <TouchableOpacity onPress={handleRegister} disabled={carregando}>
+                    <Text style={[styles.registerLink, carregando && styles.disabledText]}>
+                        Cadastre-se
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 32,
+        justifyContent: "center",
+        backgroundColor: '#fafafa'
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff'
+    },
+    loadingText: {
+        marginTop: 16,
+        color: '#2e6480',
+        fontSize: 16
+    },
+    header: {
+        alignItems: "center",
+        marginBottom: 40
+    },
+    logo: {
+        width: 400,
+        height: 250
+    },
+    form: {
+        gap: 16,
+        marginBottom: 32
+    },
+    forgotPassword: {
+        color: '#5c503a',
+        textAlign: 'center',
+        fontSize: 16,
+        marginTop: 8
+    },
+    loginButton: {
+        marginTop: 24,
+        backgroundColor: '#2e6480'
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20
+    },
+    footerText: {
+        color: '#5c503a',
+        fontSize: 16,
+        fontFamily: 'Poppins-Regular'
+    },
+    registerLink: {
+        color: '#5c503a',
+        fontFamily: 'Poppins-Bold',
+        fontSize: 16
+    },
+    disabledText: {
+        opacity: 0.5,
+    }
+})
