@@ -1,5 +1,6 @@
 package com.intuitive.app.infrastructure.entitys;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class Usuario {
     private Integer id;
 
     @Column(name ="email", unique = true)
+
     private String email;
 
     @Column(name = "nome")
@@ -30,9 +32,10 @@ public class Usuario {
     @Column(name = "sexo")
     private String sexo;
 
-    @Column(name = "dtNascimento")
+    @Column(name = "dt_nascimento")
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private Date dtNascimento;
-
 
 
 }
