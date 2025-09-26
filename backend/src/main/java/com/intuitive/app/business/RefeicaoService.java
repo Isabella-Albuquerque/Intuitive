@@ -1,0 +1,116 @@
+package com.intuitive.app.business;
+
+import com.intuitive.app.DTO.RefeicaoDto;
+import com.intuitive.app.DTO.UsuarioDto;
+import com.intuitive.app.infrastructure.entitys.Refeicao;
+import com.intuitive.app.infrastructure.entitys.Usuario;
+import com.intuitive.app.infrastructure.repository.RefeicaoRepository;
+import com.intuitive.app.infrastructure.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RefeicaoService {
+
+    private final RefeicaoRepository repository;
+    private final UsuarioRepository usuarioRepository;
+
+    // ===================== Cadastro =====================
+    public RefeicaoDto salvarRefeicao(RefeicaoDto dto) {
+        validarCamposObrigatorios(dto);
+
+        Usuario usuario = usuarioRepository.findById(dto.getUsuario().getId())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Refeicao refeicao = toEntity(dto, usuario);
+        Refeicao salvo = repository.save(refeicao);
+
+        return toDTO(salvo);
+    }
+
+    // ===================== Consulta por ID =====================
+    public RefeicaoDto consultarRefeicao(Integer idRefeicao) {
+        Refeicao refeicao = repository.findById(idRefeicao)
+                .orElseThrow(() -> new RuntimeException("Refeição não encontrada"));
+        return toDTO(refeicao);
+    }
+
+    // ===================== Histórico por mês =====================
+    public List<RefeicaoDto> historicoPorMes(Integer usuarioId, int mes, int ano) {
+        List<Refeicao> lista = repository.findByUsuarioAndMes(usuarioId, mes, ano);
+        return lista.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // ===================== Delete =====================
+    public void deletarRefeicao(Integer idRefeicao) {
+        Refeicao refeicao = repository.findById(idRefeicao)
+                .orElseThrow(() -> new RuntimeException("Refeição não encontrada"));
+        repository.delete(refeicao);
+    }
+
+    // ===================== Conversão DTO ↔ Entity =====================
+    private RefeicaoDto toDTO(Refeicao refeicao) {
+        if (refeicao == null) return null;
+
+        Usuario usuario = refeicao.getUsuario();
+        UsuarioDto usuarioDTO = null;
+        if (usuario != null) {
+            usuarioDTO = new UsuarioDto(usuario.getId(), usuario.getNome(), usuario.getEmail());
+        }
+
+        return new RefeicaoDto(
+                refeicao.getIdRefeicao(),
+                refeicao.getData(),
+                refeicao.getHorario(),
+                refeicao.getTipo(),
+                refeicao.getDescricao(),
+                refeicao.getNivelFome(),
+                refeicao.getCompanhia(),
+                refeicao.getDistracoes(),
+                refeicao.getEmocoesAntes(),
+                refeicao.getEmocoesDepois(),
+                refeicao.getNivelSaciedade(),
+                usuarioDTO
+        );
+    }
+
+    private Refeicao toEntity(RefeicaoDto dto, Usuario usuario) {
+        return Refeicao.builder()
+                .idRefeicao(dto.getIdRefeicao())
+                .tipo(dto.getTipo())
+                .descricao(dto.getDescricao())
+                .data(dto.getData())
+                .horario(dto.getHorario())
+                .nivelFome(dto.getNivelFome())
+                .nivelSaciedade(dto.getNivelSaciedade())
+                .usuario(usuario)
+                .build();
+    }
+
+    // ===================== Validação de Campos =====================
+    private void validarCamposObrigatorios(RefeicaoDto dto) {
+        if (dto.getUsuario() == null || dto.getUsuario().getId() == null) {
+            throw new IllegalArgumentException("Usuário é obrigatório");
+        }
+        if (dto.getData() == null) {
+            throw new IllegalArgumentException("Data da refeição é obrigatória");
+        }
+        if (dto.getHorario() == null) {
+            throw new IllegalArgumentException("Horário da refeição é obrigatório");
+        }
+        if (dto.getTipo() == null || dto.getTipo().isEmpty()) {
+            throw new IllegalArgumentException("Tipo da refeição é obrigatório");
+        }
+        if (dto.getNivelFome() == null) {
+            throw new IllegalArgumentException("Nível de fome é obrigatório");
+        }
+        if (dto.getNivelSaciedade() == null) {
+            throw new IllegalArgumentException("Nível de saciedade é obrigatório");
+        }
+    }
+}
