@@ -35,10 +35,8 @@ export const useAuth = () => {
 
     try {
       const usuarioAutenticado = await authService.login(credentials.email, credentials.senha)
-
       setUsuario(usuarioAutenticado)
       await AsyncStorage.setItem('@usuario', JSON.stringify(usuarioAutenticado))
-
       setCarregando(false)
       return { success: true, data: usuarioAutenticado }
     } catch (error: any) {
@@ -49,21 +47,19 @@ export const useAuth = () => {
     }
   }
 
-  const register = async (novoUsuario: Usuario) => {
+  const register = async (novoUsuario: Omit<Usuario, 'id'>) => {
     setCarregando(true)
     setErro(null)
 
     try {
       await authService.register(novoUsuario)
-
       const usuarioAutenticado = await authService.login(novoUsuario.email, novoUsuario.senha)
       setUsuario(usuarioAutenticado)
       await AsyncStorage.setItem('@usuario', JSON.stringify(usuarioAutenticado))
-
       setCarregando(false)
       return { success: true }
     } catch (error: any) {
-      const mensagemErro = error.message || 'Erro ao registrar'
+      const mensagemErro = error.message || 'Erro ao registrar usuário'
       setErro(mensagemErro)
       setCarregando(false)
       return { success: false, error: mensagemErro }

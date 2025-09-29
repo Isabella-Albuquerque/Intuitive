@@ -12,19 +12,32 @@ export interface Usuario {
 export const authService = {
   async login(email: string, senha: string): Promise<Usuario> {
     try {
-      const response = await api.get(`/?email=${encodeURIComponent(email)}`)
-      const usuario = response.data
-
-      if (usuario && usuario.senha === senha) {
-        return usuario
-      } else {
-        throw new Error('Credenciais inválidas')
-      }
+      const response = await api.post('/login', { email, senha })
+      return response.data
     } catch (error: any) {
-      if (error.response?.status === 500) {
-        throw new Error('Usuário não encontrado')
+      console.log('erro completo:', error)
+
+      let errorMessage = 'Erro ao fazer login'
+
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        errorMessage = 'Problema de conexão. Tente novamente.'
       }
-      throw new Error('Erro ao fazer login: ' + error.message)
+      else if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data
+        }
+        else if (error.response.data.message) {
+          errorMessage = error.response.data.message
+        }
+        else {
+          errorMessage = JSON.stringify(error.response.data)
+        }
+      }
+      else if (error.message) {
+        errorMessage = error.message
+      }
+
+      throw new Error(errorMessage)
     }
   },
 
@@ -32,10 +45,26 @@ export const authService = {
     try {
       await api.post('/', usuario)
     } catch (error: any) {
-      if (error.response?.status === 400) {
-        throw new Error('Email já cadastrado')
+      let errorMessage = 'Erro ao registrar'
+
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        errorMessage = 'Problema de conexão. Tente novamente.'
       }
-      throw new Error('Erro ao registrar: ' + error.message)
+      else if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data
+        }
+        else if (error.response.data.message) {
+          errorMessage = error.response.data.message
+        }
+        else {
+          errorMessage = JSON.stringify(error.response.data)
+        }
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      throw new Error(errorMessage)
     }
   },
 
@@ -43,7 +72,10 @@ export const authService = {
     try {
       await api.put(`/?email=${encodeURIComponent(email)}`, usuario)
     } catch (error: any) {
-      throw new Error('Erro ao atualizar usuário: ' + error.message)
+      if (error.response?.data) {
+        throw new Error(error.response.data)
+      }
+      throw new Error(error.message || 'Erro ao atualizar usuário')
     }
   },
 
@@ -51,7 +83,10 @@ export const authService = {
     try {
       await api.delete(`/?email=${encodeURIComponent(email)}`)
     } catch (error: any) {
-      throw new Error('Erro ao deletar usuário: ' + error.message)
+      if (error.response?.data) {
+        throw new Error(error.response.data)
+      }
+      throw new Error(error.message || 'Erro ao deletar usuário')
     }
   }
 }

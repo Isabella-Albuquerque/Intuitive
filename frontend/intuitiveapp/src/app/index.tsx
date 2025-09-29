@@ -4,6 +4,8 @@ import { router } from 'expo-router'
 import { Button } from '../components/button'
 import { Input } from '../components/input'
 import { useAuth } from '../hooks/useAuth'
+import { CustomAlert } from '../components/customAlert'
+import { useAlert } from '../hooks/useAlert'
 
 import {
     useFonts,
@@ -18,6 +20,8 @@ import {
 } from '@expo-google-fonts/poppins'
 
 export default function Login() {
+    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
+
     const [fontsLoaded] = useFonts({
         'Poppins-Light': Poppins_300Light,
         'Poppins-LightItalic': Poppins_300Light_Italic,
@@ -43,25 +47,13 @@ export default function Login() {
     }
 
     const handleLogin = async () => {
-        // validações
-        if (!email || !password) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos')
-            return
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
-            Alert.alert('Erro', 'Por favor, insira um email válido')
-            return
-        }
-
         const resultado = await login({ email, senha: password })
 
         if (resultado.success) {
-            Alert.alert('Sucesso', 'Login realizado com sucesso!')
+            showAlert('Sucesso', 'Login realizado com sucesso!')
             router.navigate("/tabs/home")
         } else {
-            Alert.alert('Erro de login', resultado.error as string)
+            showAlert('Erro de login', resultado.error as string)
         }
     }
 
@@ -83,7 +75,7 @@ export default function Login() {
                 />
             </View>
 
-            {/* forms de login */}
+            {/* login */}
             <View style={styles.form}>
                 <Input
                     placeholder="E-mail"
@@ -124,6 +116,12 @@ export default function Login() {
                     </Text>
                 </TouchableOpacity>
             </View>
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
         </View>
     )
 }

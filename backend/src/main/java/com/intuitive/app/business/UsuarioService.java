@@ -90,6 +90,9 @@ public class UsuarioService {
         if (senha == null || senha.isEmpty()) {
             throw new IllegalArgumentException("Senha é obrigatória");
         }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            throw new IllegalArgumentException("E-mail inválido");
+        }
 
         Usuario usuario = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Credenciais inválidas"));

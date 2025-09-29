@@ -3,20 +3,24 @@ import { useState } from 'react'
 import { router } from 'expo-router'
 import { Input } from '../components/input'
 import { Button } from '../components/button'
+import { CustomAlert } from '../components/customAlert'
+import { useAlert } from '../hooks/useAlert'
 
 export default function ForgotPassword() {
+    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
+
     const [email, setEmail] = useState('')
     const [carregando, setCarregando] = useState(false)
 
     const handleRecuperarSenha = async () => {
         if (!email) {
-            Alert.alert('Erro', 'Por favor, informe seu e-mail')
+            showAlert('Erro', 'Por favor, informe seu e-mail')
             return
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email)) {
-            Alert.alert('Erro', 'Por favor, insira um email válido')
+            showAlert('Erro', 'Por favor, insira um email válido')
             return
         }
 
@@ -24,12 +28,12 @@ export default function ForgotPassword() {
 
         try {
             // simula o envio do email
-            Alert.alert('Pronto',
+            showAlert('Pronto',
                 'Se seu email estiver na base de dados, você receberá um link de recuperação.',
-                [{text: 'OK', onPress: () => router.back()}]
+                () => router.back()
             )
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível enviar o email de recuperação. Tente novamente.')
+            showAlert('Erro', 'Não foi possível enviar o email de recuperação. Tente novamente.')
         } finally {
             setCarregando(false)
         }
@@ -41,8 +45,8 @@ export default function ForgotPassword() {
             <Text style={styles.subtitle}>
                 Informe seu e-mail para receber o link de recuperação
             </Text>
-            
-            <Input 
+
+            <Input
                 placeholder="E-mail"
                 onChangeText={setEmail}
                 value={email}
@@ -51,15 +55,15 @@ export default function ForgotPassword() {
                 editable={!carregando}
             />
 
-            <Button 
-                title={carregando ? "Enviando..." : "Enviar link"} 
+            <Button
+                title={carregando ? "Enviando..." : "Enviar link"}
                 onPress={handleRecuperarSenha}
                 style={styles.enviarButton}
                 disabled={carregando}
             />
-            
-            <TouchableOpacity 
-                onPress={() => router.back()} 
+
+            <TouchableOpacity
+                onPress={() => router.back()}
                 style={styles.backButton}
                 disabled={carregando}
             >
@@ -67,12 +71,19 @@ export default function ForgotPassword() {
                     Voltar para Login
                 </Text>
             </TouchableOpacity>
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {    
+    container: {
         flex: 1,
         padding: 32,
         justifyContent: "center",

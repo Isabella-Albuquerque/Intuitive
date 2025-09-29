@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/refeicao")
 @RequiredArgsConstructor
@@ -25,7 +26,6 @@ public class RefeicaoController {
         return ResponseEntity.ok(salvo);
     }
 
-
     // Consultar refeição por ID
     @GetMapping("/{id}")
     public ResponseEntity<RefeicaoDto> consultarRefeicao(@PathVariable Integer id) {
@@ -33,6 +33,12 @@ public class RefeicaoController {
         return ResponseEntity.ok(refeicaoDTO);
     }
 
+    // Alterar refeição por ID
+    @PutMapping("/{id}")
+    public ResponseEntity<RefeicaoDto> atualizarRefeicao(@PathVariable Integer id, @RequestBody RefeicaoDto dto) {
+        RefeicaoDto atualizado = refeicaoService.atualizarRefeicao(id, dto);
+        return ResponseEntity.ok(atualizado);
+    }
 
     // Consultar histórico por usuário e mês
     @GetMapping("/historico")

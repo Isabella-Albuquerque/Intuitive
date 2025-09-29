@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#FFF',
     fontSize: 16,
-    paddingRight: 45 // Espaço para o ícone
+    paddingRight: 45
   },
   eyeButton: {
     position: 'absolute',

@@ -6,8 +6,14 @@ import { Button } from '../../components/button'
 import { Input } from '../../components/input'
 import { useAuth } from '../../hooks/useAuth'
 import { authService, Usuario } from '../../services/authService'
+import { CustomAlert } from '../../components/customAlert'
+import { CustomConfirm } from '../../components/customConfirm'
+import { useAlert } from '../../hooks/useAlert'
 
 export default function Profile() {
+    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
+    const { showConfirm, hideConfirm, confirmVisible, confirmConfig } = useAlert()
+
     const [editMode, setEditMode] = useState(false)
     const [nome, setNome] = useState('')
     const [email, setEmail] = useState('')
@@ -22,7 +28,7 @@ export default function Profile() {
             await logout()
             router.replace('/')
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível fazer logout')
+            showAlert('Erro', 'Não foi possível fazer logout')
         }
     }
 
@@ -49,36 +55,22 @@ export default function Profile() {
     }
 
     const handleSave = async () => {
-        // validações
-        if (!nome || !email) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios')
+        if (!nome.trim() || !email.trim()) {
+            showAlert('Atenção', 'Nome e e-mail são obrigatórios')
             return
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
-            Alert.alert('Erro', 'Por favor, insira um email válido')
+        if (novaSenha && novaSenha !== confirmarSenha) {
+            showAlert('Atenção', 'As senhas não coincidem')
             return
-        }
-
-        if (novaSenha) {
-            if (novaSenha.length < 6) {
-                Alert.alert('Erro', 'A nova senha deve ter pelo menos 6 caracteres')
-                return
-            }
-
-            if (novaSenha !== confirmarSenha) {
-                Alert.alert('Erro', 'As novas senhas não coincidem')
-                return
-            }
         }
 
         setCarregando(true)
 
         try {
             const dadosAtualizados: Usuario = {
-                nome,
-                email,
+                nome: nome.trim(),
+                email: email.trim(),
                 senha: novaSenha || usuario?.senha || '',
                 sexo: usuario?.sexo || '',
                 dtNascimento: usuario?.dtNascimento || ''
@@ -91,35 +83,38 @@ export default function Profile() {
                 ...dadosAtualizados
             } as Usuario)
 
-            Alert.alert('Sucesso', 'Dados atualizados com sucesso!')
+            showAlert('Sucesso', 'Dados atualizados com sucesso!')
             setEditMode(false)
             setNovaSenha('')
             setConfirmarSenha('')
         } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Não foi possível atualizar os dados. Tente novamente.')
+            showAlert('Erro', error.message || 'Não foi possível atualizar os dados.')
         } finally {
             setCarregando(false)
         }
     }
 
     const handleDeleteAccount = () => {
-        Alert.alert(
+        showConfirm(
             'Excluir Conta',
             'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.',
             [
-                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Cancelar',
+                    style: 'cancel' as const
+                },
                 {
                     text: 'Excluir',
-                    style: 'destructive',
+                    style: 'destructive' as const,
                     onPress: async () => {
                         setCarregando(true)
                         try {
                             await authService.deleteUser(usuario?.email || '')
-                            Alert.alert('Conta excluída', 'Sua conta foi excluída com sucesso.')
+                            showAlert('Conta excluída', 'Sua conta foi excluída com sucesso.')
                             logout()
                             router.replace('/')
                         } catch (error: any) {
-                            Alert.alert('Erro', error.message || 'Não foi possível excluir a conta. Tente novamente.')
+                            showAlert('Erro', error.message || 'Não foi possível excluir a conta.')
                         } finally {
                             setCarregando(false)
                         }
@@ -132,9 +127,9 @@ export default function Profile() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.container}>
-                <View>
+                <View style={styles.header}>
                     <TouchableOpacity
-                        onPress={() => router.back()}
+                        onPress={() => router.navigate('/tabs/home')}
                         style={styles.backButton}
                         disabled={carregando}
                     >
@@ -192,7 +187,7 @@ export default function Profile() {
                         <>
                             <Text style={styles.sectionTitle}>Nova Senha</Text>
                             <Input
-                                placeholder="Digite a nova senha (mínimo 6 caracteres)"
+                                placeholder="Digite a nova senha (opcional)"
                                 onChangeText={setNovaSenha}
                                 value={novaSenha}
                                 secureTextEntry
@@ -253,6 +248,21 @@ export default function Profile() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
+
+            <CustomConfirm
+                visible={confirmVisible}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                buttons={confirmConfig.buttons}
+                onClose={hideConfirm}
+            />
         </SafeAreaView>
     )
 }
@@ -291,33 +301,23 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-        marginBottom: 20,
-        position: 'relative',
+        marginBottom: 20
     },
     backButton: {
         padding: 8,
-        position: 'absolute',
-        left: 0,
-        zIndex: 1,
-    },
-    backText: {
-        color: '#2e6480',
-        marginLeft: 8,
-        fontSize: 16,
-        fontFamily: 'Poppins-Regular'
     },
     title: {
         fontSize: 22,
         color: '#5c503a',
         textAlign: 'center',
         fontFamily: 'Poppins-Medium',
-        paddingTop: 46,
+        paddingTop: 0
     },
     form: {
-        gap: 10,
+        gap: 10
     },
     sectionTitle: {
         fontSize: 16,
@@ -366,15 +366,12 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Regular'
     },
     logoutButton: {
-        padding: 8,
-        position: 'absolute',
-        right: 0,
-        zIndex: 1,
+        padding: 8
     },
     logoutContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
+        gap: 4
     },
     logoutText: {
         color: '#2e6480',
@@ -382,6 +379,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Regular'
     },
     disabledText: {
-        opacity: 0.5,
+        opacity: 0.5
     }
 })

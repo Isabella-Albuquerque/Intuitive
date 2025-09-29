@@ -7,11 +7,15 @@ import { Button } from '../components/button'
 import { Input } from '../components/input'
 import { CustomModal } from '../components/modal'
 import { useAuth } from '../hooks/useAuth'
+import { CustomAlert } from '../components/customAlert'
+import { useAlert } from '../hooks/useAlert'
 
 export default function Register() {
+    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
+
     const [nome, setNome] = useState('')
     const [email, setEmail] = useState('')
-    const [dataNascimento, setDataNascimento] = useState<Date | null>(null)
+    const [dataNascimento, setDataNascimento] = useState<Date | null>(new Date(2000, 0, 1))
     const [senha, setSenha] = useState('')
     const [confirmarSenha, setConfirmarSenha] = useState('')
     const [sexo, setSexo] = useState('')
@@ -35,30 +39,13 @@ export default function Register() {
     }
 
     const handleRegister = async () => {
-        // validações
-        if (!nome || !email || !dataNascimento || !senha || !confirmarSenha || !sexo) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios')
+        if (!aceitouTermos) {
+            showAlert('Erro', 'Você deve aceitar os Termos de Uso e Política de Privacidade')
             return
         }
 
         if (senha !== confirmarSenha) {
-            Alert.alert('Erro', 'As senhas não coincidem')
-            return
-        }
-
-        if (senha.length < 6) {
-            Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres')
-            return
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
-            Alert.alert('Erro', 'Por favor, insira um email válido')
-            return
-        }
-
-        if (!aceitouTermos) {
-            Alert.alert('Erro', 'Você deve aceitar os Termos de Uso e Política de Privacidade')
+            showAlert('Erro', 'As senhas não coincidem')
             return
         }
 
@@ -67,15 +54,13 @@ export default function Register() {
             email,
             senha,
             sexo,
-            dtNascimento: dataNascimento.toISOString().split('T')[0]
+            dtNascimento: dataNascimento ? dataNascimento.toISOString().split('T')[0] : ''
         })
 
         if (resultado.success) {
-            Alert.alert('Sucesso', 'Conta criada com sucesso!', [
-                { text: 'OK', onPress: () => router.back() }
-            ])
+            showAlert('Sucesso', 'Conta criada com sucesso!', () => router.back())
         } else {
-            Alert.alert('Erro no cadastro', resultado.error as string)
+            showAlert('Erro no cadastro', resultado.error as string)
         }
     }
 
@@ -239,6 +224,13 @@ export default function Register() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
         </SafeAreaView>
     )
 }

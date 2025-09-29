@@ -38,6 +38,33 @@ public class RefeicaoService {
         return toDTO(refeicao);
     }
 
+    // ===================== Atualização =====================
+    public RefeicaoDto atualizarRefeicao(Integer id, RefeicaoDto dto) {
+        Refeicao refeicaoExistente = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Refeição não encontrada"));
+
+        validarCamposObrigatorios(dto);
+
+        Usuario usuario = usuarioRepository.findById(dto.getUsuario().getId())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        refeicaoExistente.setTipo(dto.getTipo());
+        refeicaoExistente.setDescricao(dto.getDescricao());
+        refeicaoExistente.setData(dto.getData());
+        refeicaoExistente.setHorario(dto.getHorario());
+        refeicaoExistente.setNivelFome(dto.getNivelFome());
+        refeicaoExistente.setNivelSaciedade(dto.getNivelSaciedade());
+        refeicaoExistente.setCompanhia(dto.getCompanhia());
+        refeicaoExistente.setDistracoes(dto.getDistracoes());
+        refeicaoExistente.setEmocoesAntes(dto.getEmocoesAntes());
+        refeicaoExistente.setEmocoesDepois(dto.getEmocoesDepois());
+        refeicaoExistente.setUsuario(usuario);
+
+        Refeicao atualizada = repository.save(refeicaoExistente);
+
+        return toDTO(atualizada);
+    }
+
     // ===================== Histórico por mês =====================
     public List<RefeicaoDto> historicoPorMes(Integer usuarioId, int mes, int ano) {
         List<Refeicao> lista = repository.findByUsuarioAndMes(usuarioId, mes, ano);
@@ -55,12 +82,16 @@ public class RefeicaoService {
 
     // ===================== Conversão DTO ↔ Entity =====================
     private RefeicaoDto toDTO(Refeicao refeicao) {
-        if (refeicao == null) return null;
+        if (refeicao == null)
+            return null;
 
         Usuario usuario = refeicao.getUsuario();
         UsuarioDto usuarioDTO = null;
         if (usuario != null) {
-            usuarioDTO = new UsuarioDto(usuario.getId(), usuario.getNome(), usuario.getEmail());
+            usuarioDTO = new UsuarioDto();
+            usuarioDTO.setId(usuario.getId());
+            usuarioDTO.setNome(usuario.getNome());
+            usuarioDTO.setEmail(usuario.getEmail());
         }
 
         return new RefeicaoDto(
@@ -75,8 +106,7 @@ public class RefeicaoService {
                 refeicao.getEmocoesAntes(),
                 refeicao.getEmocoesDepois(),
                 refeicao.getNivelSaciedade(),
-                usuarioDTO
-        );
+                usuarioDTO);
     }
 
     private Refeicao toEntity(RefeicaoDto dto, Usuario usuario) {
@@ -88,6 +118,10 @@ public class RefeicaoService {
                 .horario(dto.getHorario())
                 .nivelFome(dto.getNivelFome())
                 .nivelSaciedade(dto.getNivelSaciedade())
+                .companhia(dto.getCompanhia())
+                .distracoes(dto.getDistracoes())
+                .emocoesAntes(dto.getEmocoesAntes())
+                .emocoesDepois(dto.getEmocoesDepois())
                 .usuario(usuario)
                 .build();
     }

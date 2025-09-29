@@ -13,7 +13,6 @@ public interface RefeicaoRepository extends JpaRepository<Refeicao, Integer> {
     @Transactional
     void deleteByIdRefeicao(Integer idRefeicao);
 
-
     // Consulta refeições por usuário e data exata
     List<Refeicao> findByUsuarioIdAndData(Integer usuarioId, Date data);
 
@@ -21,8 +20,7 @@ public interface RefeicaoRepository extends JpaRepository<Refeicao, Integer> {
     @Query("SELECT r FROM Refeicao r " +
             "WHERE r.usuario.id = :usuarioId " +
             "AND FUNCTION('MONTH', r.data) = :mes " +
-            "AND FUNCTION('YEAR', r.data) = :ano")
+            "AND FUNCTION('YEAR', r.data) = :ano " +
+            "ORDER BY r.data DESC, r.horario DESC")
     List<Refeicao> findByUsuarioAndMes(Integer usuarioId, int mes, int ano);
 }
-
-
