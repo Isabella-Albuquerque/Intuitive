@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, SafeAreaView, Platform, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Platform, StatusBar } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/button'
@@ -46,7 +47,7 @@ export default function Profile() {
 
     if (carregandoAuth) {
         return (
-            <SafeAreaView style={styles.safeArea}>
+            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
                 <View style={styles.loadingContainer}>
                     <Text style={styles.loadingText}>Carregando...</Text>
                 </View>
@@ -125,7 +126,7 @@ export default function Profile() {
     }
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.header}>
                     <TouchableOpacity
@@ -271,7 +272,6 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fafafa',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     container: {
         flexGrow: 1,

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, SafeAreaView, Platform, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Platform, StatusBar } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
@@ -77,7 +78,7 @@ export default function Register() {
     }
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <ScrollView contentContainerStyle={styles.container}>
                 <TouchableOpacity
                     onPress={() => router.back()}
@@ -282,7 +283,6 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fafafa',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     container: {
         flexGrow: 1,

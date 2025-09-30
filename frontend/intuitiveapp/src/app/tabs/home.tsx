@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, SafeAreaView, Platform, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../hooks/useAuth'
@@ -51,7 +52,7 @@ export default function Home() {
     }
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <View style={styles.container}>
                 <View style={styles.topSection}>
                     <TouchableOpacity
@@ -101,10 +102,9 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fafafa',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
     },
     container: {
-        flex: 1,
+        flexGrow: 1,
         backgroundColor: '#fafafa'
     },
     topSection: {
