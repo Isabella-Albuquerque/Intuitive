@@ -84,23 +84,22 @@ public class UsuarioService {
     }
 
     // ===================== LOGIN =====================
-
     public Usuario login(String email, String senha) {
         if (email == null || email.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email é obrigatório");
+            throw new IllegalArgumentException("Email é obrigatório");
         }
         if (senha == null || senha.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha é obrigatória");
+            throw new IllegalArgumentException("Senha é obrigatória");
         }
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail inválido");
+            throw new IllegalArgumentException("E-mail inválido");
         }
 
         Usuario usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
+                .orElseThrow(() -> new IllegalArgumentException("Credenciais inválidas"));
 
         if (!usuario.getSenha().equals(senha)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
+            throw new IllegalArgumentException("Credenciais inválidas");
         }
 
         return usuario; // Aqui poderia retornar um token em uma implementação real
