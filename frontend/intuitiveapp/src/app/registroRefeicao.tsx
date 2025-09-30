@@ -69,11 +69,6 @@ export default function RegistroRefeicao() {
             return
         }
 
-        if (!tipo.trim()) {
-            showAlert('Atenção', 'Informe o tipo de refeição')
-            return
-        }
-
         try {
             setCarregando(true)
 
