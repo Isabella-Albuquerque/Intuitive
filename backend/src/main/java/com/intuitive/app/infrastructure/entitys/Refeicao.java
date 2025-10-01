@@ -28,7 +28,7 @@ public class Refeicao {
 
     @Column(name = "data")
     @Temporal(TemporalType.DATE)
-    @JsonFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "America/Sao_Paulo")
     private Date data;
 
     @Column(name = "horario")

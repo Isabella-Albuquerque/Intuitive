@@ -1,22 +1,21 @@
 # Intuitive
 
-# Backend:
+# Backend (Spring Boot)
+Configure o banco de dados local (opcional, só se quiser rodar localmente):
+- Assegure a existência do banco de dados nomeado "intuitive" no seu Workbench
+- Atualize application-dev.properties com seu usuário e senha do MySQL.
 
-Configure o application.properties do backend com seu usuário e senha do MySQL
-
-Assegure a existência do banco de dados nomeado "intuitive" no seu Workbench
+Rodar backend:
+    
+    cd backend
+    mvnw spring-boot:run
 
 # Frontend (React Native - Expo):
+Instale dependências:
 
-# Instalar dependências
-    npm i axios
+    npm install
+Inicie o projeto:
 
-# Instalar com Expo (dependências nativas)
-    npx expo install @react-native-community/datetimepicker
-    npx expo install @expo-google-fonts/poppins
-    npx expo install @expo/vector-icons
-    npx expo install @react-native-async-storage/async-storage
-
-# Iniciar o projeto
     npx expo start
+
 

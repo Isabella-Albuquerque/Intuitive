@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native'
+import { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from 'react-native'
 import { router } from 'expo-router'
 import { Button } from '../components/button'
 import { Input } from '../components/input'
@@ -37,6 +37,24 @@ export default function Login() {
     const [password, setPassword] = useState('')
     const { login, carregando } = useAuth()
 
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false)
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => setKeyboardVisible(true)
+        )
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => setKeyboardVisible(false)
+        )
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        }
+    }, [])
+
     if (!fontsLoaded) {
         return (
             <View style={styles.loadingContainer}>
@@ -66,63 +84,74 @@ export default function Login() {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Image
-                    source={require('../../assets/images/Logo.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            enabled={isKeyboardVisible}
+        >
+            <View
+                style={styles.container}
+                onStartShouldSetResponder={() => true}
+                onResponderRelease={Keyboard.dismiss}
+            >
+                <View style={styles.header}>
+                    <Image
+                        source={require('../../assets/images/Logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                </View>
+
+                {/* login */}
+                <View style={styles.form}>
+                    <Input
+                        placeholder="E-mail"
+                        onChangeText={setEmail}
+                        value={email}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        editable={!carregando}
+                    />
+
+                    <Input
+                        placeholder="Senha"
+                        onChangeText={setPassword}
+                        value={password}
+                        secureTextEntry
+                        editable={!carregando}
+                    />
+
+                    <TouchableOpacity onPress={handleForgotPassword} disabled={carregando}>
+                        <Text style={[styles.forgotPassword, carregando && styles.disabledText, { fontFamily: 'Poppins-Regular' }]}>
+                            Esqueceu a senha?
+                        </Text>
+                    </TouchableOpacity>
+
+                    <Button
+                        title={carregando ? "Entrando..." : "Entrar"}
+                        onPress={handleLogin}
+                        style={styles.loginButton}
+                        disabled={carregando}
+                    />
+                </View>
+
+                <View style={styles.footer}>
+                    <Text style={styles.footerText}>Não tem uma conta? </Text>
+                    <TouchableOpacity onPress={handleRegister} disabled={carregando}>
+                        <Text style={[styles.registerLink, carregando && styles.disabledText]}>
+                            Cadastre-se
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+                <CustomAlert
+                    visible={alertVisible}
+                    title={alertConfig.title}
+                    message={alertConfig.message}
+                    onClose={hideAlert}
                 />
             </View>
-
-            {/* login */}
-            <View style={styles.form}>
-                <Input
-                    placeholder="E-mail"
-                    onChangeText={setEmail}
-                    value={email}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    editable={!carregando}
-                />
-
-                <Input
-                    placeholder="Senha"
-                    onChangeText={setPassword}
-                    value={password}
-                    secureTextEntry
-                    editable={!carregando}
-                />
-
-                <TouchableOpacity onPress={handleForgotPassword} disabled={carregando}>
-                    <Text style={[styles.forgotPassword, carregando && styles.disabledText, { fontFamily: 'Poppins-Regular' }]}>
-                        Esqueceu a senha?
-                    </Text>
-                </TouchableOpacity>
-
-                <Button
-                    title={carregando ? "Entrando..." : "Entrar"}
-                    onPress={handleLogin}
-                    style={styles.loginButton}
-                    disabled={carregando}
-                />
-            </View>
-
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>Não tem uma conta? </Text>
-                <TouchableOpacity onPress={handleRegister} disabled={carregando}>
-                    <Text style={[styles.registerLink, carregando && styles.disabledText]}>
-                        Cadastre-se
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            <CustomAlert
-                visible={alertVisible}
-                title={alertConfig.title}
-                message={alertConfig.message}
-                onClose={hideAlert}
-            />
-        </View>
+        </KeyboardAvoidingView>
     )
 }
 
