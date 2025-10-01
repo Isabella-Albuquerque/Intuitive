@@ -13,7 +13,7 @@ import java.util.Date;
 
 public class RefeicaoDto {
     private Integer idRefeicao;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "America/Sao_Paulo")
     private Date data;
     private Time horario;
     private String tipo;
