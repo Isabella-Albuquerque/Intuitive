@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Platform, StatusBar } from 'react-native'
+import { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Keyboard, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -26,6 +26,24 @@ export default function Register() {
     const [modalVisible, setModalVisible] = useState(false)
     const [modalContent, setModalContent] = useState('')
     const [modalTitle, setModalTitle] = useState('')
+
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false)
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => setKeyboardVisible(true)
+        )
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => setKeyboardVisible(false)
+        )
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        }
+    }, [])
 
     const handleDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false)
@@ -78,161 +96,175 @@ export default function Register() {
     }
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={styles.simpleBackButton}
-                    disabled={carregando}
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            enabled={isKeyboardVisible}
+        >
+            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+                <ScrollView
+                    contentContainerStyle={[
+                        styles.container,
+                        { paddingBottom: isKeyboardVisible ? 100 : 30 }
+                    ]}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Ionicons name="arrow-back" size={32} color="#2e6480" />
-                </TouchableOpacity>
-
-                <Text style={styles.title}>Intuitive</Text>
-                <Text style={styles.subtitle}>Cadastro</Text>
-
-                <View style={styles.form}>
-                    {/* nome */}
-                    <Text style={styles.sectionTitle}>Nome</Text>
-                    <Input
-                        placeholder="Nome"
-                        onChangeText={setNome}
-                        value={nome}
-                        editable={!carregando}
-                    />
-
-                    {/* email */}
-                    <Text style={styles.sectionTitle}>E-mail</Text>
-                    <Input
-                        placeholder="E-mail"
-                        onChangeText={setEmail}
-                        value={email}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        editable={!carregando}
-                    />
-
-                    {/* data de nascimento */}
-                    <Text style={styles.sectionTitle}>Data de Nascimento</Text>
-                    <TouchableOpacity
-                        onPress={() => setShowDatePicker(true)}
-                        disabled={carregando}
-                    >
-                        <Input
-                            placeholder="Data de Nascimento"
-                            placeholderTextColor="#a08d80"
-                            value={dataNascimento ? formatarData(dataNascimento) : ''}
-                            editable={false}
-                            pointerEvents="none"
-                        />
-                    </TouchableOpacity>
-
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={dataNascimento || new Date()}
-                            mode="date"
-                            display="spinner"
-                            onChange={handleDateChange}
-                            maximumDate={new Date()}
-                        />
-                    )}
-
-                    {/* sexo */}
-                    <Text style={styles.sectionTitle}>Sexo</Text>
-                    <View style={styles.sexoContainer}>
-                        <TouchableOpacity
-                            style={[styles.sexoButton, sexo === 'M' && styles.sexoButtonSelected]}
-                            onPress={() => setSexo('M')}
-                            disabled={carregando}
-                        >
-                            <Text style={[styles.sexoText, sexo === 'M' && styles.sexoTextSelected]}>
-                                Masculino
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.sexoButton, sexo === 'F' && styles.sexoButtonSelected]}
-                            onPress={() => setSexo('F')}
-                            disabled={carregando}
-                        >
-                            <Text style={[styles.sexoText, sexo === 'F' && styles.sexoTextSelected]}>
-                                Feminino
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* senha */}
-                    <Text style={styles.sectionTitle}>Senha</Text>
-                    <Input
-                        placeholder="Senha"
-                        onChangeText={setSenha}
-                        value={senha}
-                        secureTextEntry
-                        editable={!carregando}
-                    />
-
-                    {/* confirmar senha */}
-                    <Text style={styles.sectionTitle}>Confirme a senha</Text>
-                    <Input
-                        placeholder="Confirme sua senha"
-                        onChangeText={setConfirmarSenha}
-                        value={confirmarSenha}
-                        secureTextEntry
-                        editable={!carregando}
-                    />
-
-                    {/* termos de uso */}
-                    <View style={styles.termosContainer}>
-                        <Switch
-                            value={aceitouTermos}
-                            onValueChange={setAceitouTermos}
-                            disabled={carregando}
-                            thumbColor={aceitouTermos ? '#2e6480' : '#f4f3f4'}
-                            trackColor={{ false: '#767577', true: '#81b0ff' }}
-                        />
-                        <Text style={styles.termosText}>
-                            Eu li e concordo com os{' '}
-                            <Text style={styles.link} onPress={mostrarTermosUso}>
-                                Termos de Uso
-                            </Text>{' '}
-                            e{' '}
-                            <Text style={styles.link} onPress={mostrarPoliticaPrivacidade}>
-                                Política de Privacidade
-                            </Text>
-                        </Text>
-                    </View>
-                    <CustomModal
-                        visible={modalVisible}
-                        onClose={() => setModalVisible(false)}
-                        title={modalTitle}
-                    >
-                        <Text style={styles.modalText}>{modalContent}</Text>
-                    </CustomModal>
-
-                    <Button
-                        title={carregando ? "Criando conta..." : "Criar conta"}
-                        onPress={handleRegister}
-                        style={styles.registerButton}
-                        disabled={carregando}
-                    />
-
                     <TouchableOpacity
                         onPress={() => router.back()}
+                        style={styles.simpleBackButton}
                         disabled={carregando}
                     >
-                        <Text style={[styles.backText, carregando && styles.disabledText]}>
-                            Já tem uma conta? Faça login
-                        </Text>
+                        <Ionicons name="arrow-back" size={32} color="#2e6480" />
                     </TouchableOpacity>
-                </View>
-            </ScrollView>
 
-            <CustomAlert
-                visible={alertVisible}
-                title={alertConfig.title}
-                message={alertConfig.message}
-                onClose={hideAlert}
-            />
-        </SafeAreaView>
+                    <Text style={styles.title}>Intuitive</Text>
+                    <Text style={styles.subtitle}>Cadastro</Text>
+
+                    <View style={styles.form}>
+                        {/* nome */}
+                        <Text style={styles.sectionTitle}>Nome</Text>
+                        <Input
+                            placeholder="Nome"
+                            onChangeText={setNome}
+                            value={nome}
+                            editable={!carregando}
+                        />
+
+                        {/* email */}
+                        <Text style={styles.sectionTitle}>E-mail</Text>
+                        <Input
+                            placeholder="E-mail"
+                            onChangeText={setEmail}
+                            value={email}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            editable={!carregando}
+                        />
+
+                        {/* data de nascimento */}
+                        <Text style={styles.sectionTitle}>Data de Nascimento</Text>
+                        <TouchableOpacity
+                            onPress={() => setShowDatePicker(true)}
+                            disabled={carregando}
+                        >
+                            <Input
+                                placeholder="Data de Nascimento"
+                                placeholderTextColor="#a08d80"
+                                value={dataNascimento ? formatarData(dataNascimento) : ''}
+                                editable={false}
+                                pointerEvents="none"
+                            />
+                        </TouchableOpacity>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={dataNascimento || new Date()}
+                                mode="date"
+                                display="spinner"
+                                onChange={handleDateChange}
+                                maximumDate={new Date()}
+                            />
+                        )}
+
+                        {/* sexo */}
+                        <Text style={styles.sectionTitle}>Sexo</Text>
+                        <View style={styles.sexoContainer}>
+                            <TouchableOpacity
+                                style={[styles.sexoButton, sexo === 'M' && styles.sexoButtonSelected]}
+                                onPress={() => setSexo('M')}
+                                disabled={carregando}
+                            >
+                                <Text style={[styles.sexoText, sexo === 'M' && styles.sexoTextSelected]}>
+                                    Masculino
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.sexoButton, sexo === 'F' && styles.sexoButtonSelected]}
+                                onPress={() => setSexo('F')}
+                                disabled={carregando}
+                            >
+                                <Text style={[styles.sexoText, sexo === 'F' && styles.sexoTextSelected]}>
+                                    Feminino
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* senha */}
+                        <Text style={styles.sectionTitle}>Senha</Text>
+                        <Input
+                            placeholder="Senha"
+                            onChangeText={setSenha}
+                            value={senha}
+                            secureTextEntry
+                            editable={!carregando}
+                        />
+
+                        {/* confirmar senha */}
+                        <Text style={styles.sectionTitle}>Confirme a senha</Text>
+                        <Input
+                            placeholder="Confirme sua senha"
+                            onChangeText={setConfirmarSenha}
+                            value={confirmarSenha}
+                            secureTextEntry
+                            editable={!carregando}
+                        />
+
+                        {/* termos de uso */}
+                        <View style={styles.termosContainer}>
+                            <Switch
+                                value={aceitouTermos}
+                                onValueChange={setAceitouTermos}
+                                disabled={carregando}
+                                thumbColor={aceitouTermos ? '#2e6480' : '#f4f3f4'}
+                                trackColor={{ false: '#767577', true: '#81b0ff' }}
+                            />
+                            <Text style={styles.termosText}>
+                                Eu li e concordo com os{' '}
+                                <Text style={styles.link} onPress={mostrarTermosUso}>
+                                    Termos de Uso
+                                </Text>{' '}
+                                e{' '}
+                                <Text style={styles.link} onPress={mostrarPoliticaPrivacidade}>
+                                    Política de Privacidade
+                                </Text>
+                            </Text>
+                        </View>
+                        <CustomModal
+                            visible={modalVisible}
+                            onClose={() => setModalVisible(false)}
+                            title={modalTitle}
+                        >
+                            <Text style={styles.modalText}>{modalContent}</Text>
+                        </CustomModal>
+
+                        <Button
+                            title={carregando ? "Criando conta..." : "Criar conta"}
+                            onPress={handleRegister}
+                            style={styles.registerButton}
+                            disabled={carregando}
+                        />
+
+                        <TouchableOpacity
+                            onPress={() => router.back()}
+                            disabled={carregando}
+                        >
+                            <Text style={[styles.backText, carregando && styles.disabledText]}>
+                                Já tem uma conta? Faça login
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+
+                <CustomAlert
+                    visible={alertVisible}
+                    title={alertConfig.title}
+                    message={alertConfig.message}
+                    onClose={hideAlert}
+                />
+            </SafeAreaView>
+        </KeyboardAvoidingView>
     )
 }
 
