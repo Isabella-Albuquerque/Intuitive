@@ -14,21 +14,15 @@ public class RelatoriosController {
     @Autowired
     private RelatoriosService relatoriosService;
 
-    // Média diária de refeições por semana
-    @GetMapping("/media/semana")
-    public Double mediaDiariaSemana(
-            @RequestParam Integer idUsuario,
-            @RequestParam int ano,
-            @RequestParam int semana) {
-        return relatoriosService.mediaDiariaSemana(idUsuario, ano, semana);
+    // 🔹 Média diária dos últimos 7 dias
+    @GetMapping("/ultimos7dias")
+    public Double mediaDiariaUltimos7Dias(@RequestParam Integer idUsuario) {
+        return relatoriosService.mediaDiariaUltimos7Dias(idUsuario);
     }
 
-    // Média diária de refeições por mês
-    @GetMapping("/media/mes")
-    public Double mediaDiariaMes(
-            @RequestParam Integer idUsuario,
-            @RequestParam int ano,
-            @RequestParam int mes) {
-        return relatoriosService.mediaDiariaMes(idUsuario, ano, mes);
+    // Endpoint para média diária dos últimos 30 dias
+    @GetMapping("/ultimos30dias")
+    public Double mediaUltimos30Dias(@RequestParam Integer idUsuario) {
+        return relatoriosService.mediaDiariaUltimos30Dias(idUsuario);
     }
 }

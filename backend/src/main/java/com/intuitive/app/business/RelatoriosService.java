@@ -3,6 +3,8 @@ package com.intuitive.app.business;
 import com.intuitive.app.infrastructure.repository.RelatoriosRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDate;
 import java.time.YearMonth;
 
 
@@ -12,24 +14,21 @@ public class RelatoriosService {
     @Autowired
     private RelatoriosRepository relatoriosRepository;
 
-    // Média diária da semana
-    public Double mediaDiariaSemana(Integer idUsuario, int ano, int semana) {
-        Double totalRefeicoes = relatoriosRepository.contarPorUsuarioPorSemana(idUsuario, ano, semana);
+    // Média diária dos últimos 7 dias (excluindo dias sem registro)
+    public Double mediaDiariaUltimos7Dias(Integer idUsuario) {
+        LocalDate hoje = LocalDate.now();
+        LocalDate seteDiasAtras = hoje.minusDays(6); // conta o dia atual também
 
-        // Número de dias na semana (sempre 7)
-        int diasSemana = 7;
+        Double media = relatoriosRepository.calcularMediaUltimos7Dias(idUsuario, seteDiasAtras, hoje);
 
-        return totalRefeicoes.doubleValue() / diasSemana;
+        // se o usuário não tiver refeições registradas no período, retorna 0.0
+        return media != null ? media : 0.0;
     }
 
-    // Média diária do mês
-    public Double mediaDiariaMes(Integer idUsuario, int ano, int mes) {
-        Double totalRefeicoes = relatoriosRepository.contarPorUsuarioPorMes(idUsuario, ano, mes);
 
-        // Número de dias do mês
-        YearMonth yearMonth = YearMonth.of(ano, mes);
-        int diasMes = yearMonth.lengthOfMonth();
-
-        return totalRefeicoes.doubleValue() / diasMes;
+    // Média diária dos últimos 30 dias
+    public Double mediaDiariaUltimos30Dias(Integer idUsuario) {
+        Double media = relatoriosRepository.mediaUltimos30Dias(idUsuario);
+        return media != null ? media : 0.0;
     }
 }
