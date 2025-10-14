@@ -86,10 +86,10 @@ public class UsuarioService {
     // ===================== LOGIN =====================
     public Usuario login(String email, String senha) {
         if (email == null || email.isEmpty()) {
-            throw new IllegalArgumentException("Email é obrigatório");
+            throw new IllegalArgumentException("Você deve informar o e-mail para continuar");
         }
         if (senha == null || senha.isEmpty()) {
-            throw new IllegalArgumentException("Senha é obrigatória");
+            throw new IllegalArgumentException("Você deve informar a senha para continuar");
         }
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new IllegalArgumentException("E-mail inválido");
@@ -109,19 +109,19 @@ public class UsuarioService {
 
     private void validarCamposObrigatorios(Usuario usuario) {
         if (usuario.getNome() == null || usuario.getNome().isEmpty()) {
-            throw new IllegalArgumentException("Nome é obrigatório");
+            throw new IllegalArgumentException("Ops! Você deve informar seu nome");
         }
         if (usuario.getEmail() == null || usuario.getEmail().isEmpty()) {
-            throw new IllegalArgumentException("Email é obrigatório");
+            throw new IllegalArgumentException("Ops! Você deve informar seu e-mail");
         }
         if (usuario.getSenha() == null || usuario.getSenha().isEmpty()) {
-            throw new IllegalArgumentException("Senha é obrigatória");
+            throw new IllegalArgumentException("Ops! Você deve informar sua senha");
         }
         if (usuario.getSexo() == null || usuario.getSexo().isEmpty()) {
-            throw new IllegalArgumentException("Sexo é obrigatório");
+            throw new IllegalArgumentException("Ops! Você deve informar seu sexo");
         }
         if (usuario.getDtNascimento() == null) {
-            throw new IllegalArgumentException("Data de nascimento é obrigatória");
+            throw new IllegalArgumentException("Ops! Você deve informar sua data de nascimento");
         }
     }
 
@@ -134,7 +134,7 @@ public class UsuarioService {
     private void validarDtNascimento(Date dtNascimento) {
         Date today = new Date();
         if (dtNascimento.after(today)) {
-            throw new IllegalArgumentException("Data de nascimento deve ser no passado");
+            throw new IllegalArgumentException("Ops! A data de nascimento não pode ser futura");
         }
     }
 }

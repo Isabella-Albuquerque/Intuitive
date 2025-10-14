@@ -129,22 +129,22 @@ public class RefeicaoService {
     // ===================== Validação de Campos =====================
     private void validarCamposObrigatorios(RefeicaoDto dto) {
         if (dto.getUsuario() == null || dto.getUsuario().getId() == null) {
-            throw new IllegalArgumentException("Usuário é obrigatório");
+            throw new IllegalArgumentException("Usuário inválido");
         }
         if (dto.getData() == null) {
-            throw new IllegalArgumentException("Data da refeição é obrigatória");
+            throw new IllegalArgumentException("Você deve informar a data da refeição");
         }
         if (dto.getHorario() == null) {
-            throw new IllegalArgumentException("Horário da refeição é obrigatório");
+            throw new IllegalArgumentException("Você deve informar o horário da refeição");
         }
         if (dto.getTipo() == null || dto.getTipo().isEmpty()) {
-            throw new IllegalArgumentException("Tipo da refeição é obrigatório");
+            throw new IllegalArgumentException("Você deve informar o tipo da refeição");
         }
         if (dto.getNivelFome() == null) {
-            throw new IllegalArgumentException("Nível de fome é obrigatório");
+            throw new IllegalArgumentException("Você deve informar o nível de fome");
         }
         if (dto.getNivelSaciedade() == null) {
-            throw new IllegalArgumentException("Nível de saciedade é obrigatório");
+            throw new IllegalArgumentException("Você deve informar o nível de saciedade");
         }
     }
 }
