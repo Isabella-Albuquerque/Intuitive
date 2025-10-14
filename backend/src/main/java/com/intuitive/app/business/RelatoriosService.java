@@ -14,14 +14,13 @@ public class RelatoriosService {
     @Autowired
     private RelatoriosRepository relatoriosRepository;
 
-    // Média diária dos últimos 7 dias (excluindo dias sem registro)
+    // Média diária dos últimos 7 dias
     public Double mediaDiariaUltimos7Dias(Integer idUsuario) {
         LocalDate hoje = LocalDate.now();
-        LocalDate seteDiasAtras = hoje.minusDays(6); // conta o dia atual também
+        LocalDate seteDiasAtras = hoje.minusDays(6);
 
         Double media = relatoriosRepository.calcularMediaUltimos7Dias(idUsuario, seteDiasAtras, hoje);
 
-        // se o usuário não tiver refeições registradas no período, retorna 0.0
         return media != null ? media : 0.0;
     }
 
