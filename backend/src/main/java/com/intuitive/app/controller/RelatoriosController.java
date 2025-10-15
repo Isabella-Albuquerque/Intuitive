@@ -1,28 +1,49 @@
 package com.intuitive.app.controller;
 
-import com.intuitive.app.business.RelatoriosService;
+import com.intuitive.app.DTO.RelatorioDistracoesDto;
+import com.intuitive.app.business.RelatoriosService.DistracaoService;
+import com.intuitive.app.business.RelatoriosService.MediaRefeicoesService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/relatorios")
 public class RelatoriosController {
 
     @Autowired
-    private RelatoriosService relatoriosService;
+    private MediaRefeicoesService mediaRefeicoesService;
 
     // 🔹 Média diária dos últimos 7 dias
     @GetMapping("/ultimos7dias")
     public Double mediaDiariaUltimos7Dias(@RequestParam Integer idUsuario) {
-        return relatoriosService.mediaDiariaUltimos7Dias(idUsuario);
+        return mediaRefeicoesService.mediaDiariaUltimos7Dias(idUsuario);
     }
 
     // Endpoint para média diária dos últimos 30 dias
     @GetMapping("/ultimos30dias")
     public Double mediaUltimos30Dias(@RequestParam Integer idUsuario) {
-        return relatoriosService.mediaDiariaUltimos30Dias(idUsuario);
+        return mediaRefeicoesService.mediaDiariaUltimos30Dias(idUsuario);
+    }
+
+//========================RELATORIO DISTRACAO===================================
+    private final DistracaoService distracaoService;
+
+    public RelatoriosController(DistracaoService distracaoService) {
+        this.distracaoService = distracaoService;
+    }
+
+    @GetMapping("/relatorio/distracoes/semanal/{idUsuario}")
+    public List<RelatorioDistracoesDto> distracoesSemana(@PathVariable Long idUsuario) {
+        RelatorioDistracoesDto ultimos7Dias = distracaoService.contarUltimos7Dias(idUsuario);
+        return Arrays.asList(ultimos7Dias);
+    }
+
+    @GetMapping("/relatorio/distracoes/mensal/{idUsuario}")
+    public List<RelatorioDistracoesDto> distacoesMes(@PathVariable Long idUsuario) {
+        RelatorioDistracoesDto ultimos30Dias = distracaoService.contarUltimos30Dias(idUsuario);
+        return Arrays.asList(ultimos30Dias);
     }
 }
