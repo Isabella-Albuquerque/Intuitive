@@ -18,7 +18,7 @@ public class DistracaoService {
     public RelatorioDistracoesDto contarUltimos7Dias(Long idUsuario) {
         LocalDate dataInicio = LocalDate.now().minusDays(7);
         RelatorioDistracoesDto dto = repository.contarDistracoesPorUsuario(dataInicio, idUsuario);
-        dto.setMensagem("Últimos 7 dias");
+        dto.setMensagem(setaMensagemAviso(dto.getCountSim(), dto.getCountNao()));
         return dto;
     }
 

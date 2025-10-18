@@ -1,7 +1,9 @@
 package com.intuitive.app.controller;
 
 import com.intuitive.app.DTO.RelatorioDistracoesDto;
+import com.intuitive.app.DTO.RelatorioEmocoesDto;
 import com.intuitive.app.business.RelatoriosService.DistracaoService;
+import com.intuitive.app.business.RelatoriosService.EmocoesService;
 import com.intuitive.app.business.RelatoriosService.MediaRefeicoesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +33,9 @@ public class RelatoriosController {
 //========================RELATORIO DISTRACAO===================================
     private final DistracaoService distracaoService;
 
-    public RelatoriosController(DistracaoService distracaoService) {
+    public RelatoriosController(DistracaoService distracaoService, EmocoesService emocoesService) {
         this.distracaoService = distracaoService;
+        this.emocoesService = emocoesService;
     }
 
     @GetMapping("distracoes/ultimos7dias/{idUsuario}")
@@ -42,8 +45,25 @@ public class RelatoriosController {
     }
 
     @GetMapping("/distracoes/ultimos30dias/{idUsuario}")
-    public List<RelatorioDistracoesDto> distacoesMes(@PathVariable Long idUsuario) {
+    public List<RelatorioDistracoesDto> distracoesMes(@PathVariable Long idUsuario) {
         RelatorioDistracoesDto ultimos30Dias = distracaoService.contarUltimos30Dias(idUsuario);
         return Arrays.asList(ultimos30Dias);
     }
+
+    //========================RELATORIO EMOCOES===================================
+
+    private final EmocoesService emocoesService;
+
+    @GetMapping("emocoes-antes/ultimos7dias/{idUsuario}")
+    public List<RelatorioEmocoesDto> emocoesSemana(@PathVariable Long idUsuario){
+        RelatorioEmocoesDto ultimos7dias = emocoesService.contarUltimos7dias(idUsuario);
+        return Arrays.asList(ultimos7dias);
+    }
+
+    @GetMapping("emocoes-antes/ultimos30dias/{idUsuario}")
+    public List<RelatorioEmocoesDto> emocoesMes(@PathVariable Long idUsuario){
+        RelatorioEmocoesDto ultimos30dias = emocoesService.contarUltimos30dias(idUsuario);
+        return Arrays.asList(ultimos30dias);
+    }
+
 }

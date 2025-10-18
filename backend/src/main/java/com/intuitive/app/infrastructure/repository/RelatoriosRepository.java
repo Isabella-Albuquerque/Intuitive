@@ -1,6 +1,7 @@
 package com.intuitive.app.infrastructure.repository;
 
 import com.intuitive.app.DTO.RelatorioDistracoesDto;
+import com.intuitive.app.DTO.RelatorioEmocoesDto;
 import com.intuitive.app.infrastructure.entitys.Refeicao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,10 @@ import java.util.Date;
 @Repository
 public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
 
+
+    //=================== MÉDIA DAS REFEIÇÕES ==============
+
+    // Média diária de refeições nos últimos 7 dias
 
     @Query("""
                 SELECT COUNT(r) * 1.0 / COUNT(DISTINCT r.data)
@@ -37,14 +42,36 @@ public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
     )
     Double mediaUltimos30Dias(@Param("idUsuario") Integer idUsuario);
 
+    // ============== DISTRAÇÕES =========================
+
     @Query("SELECT new com.intuitive.app.DTO.RelatorioDistracoesDto(" +
             "SUM(CASE WHEN r.distracoes = 'SIM' THEN 1 ELSE 0 END), " +
             "SUM(CASE WHEN r.distracoes = 'NAO' THEN 1 ELSE 0 END), " +
-            "'') " + // mensagem será setada no Service
+            "'') " + // mensagem setada no Service
             "FROM Refeicao r " +
             "WHERE r.data >= :dataInicio AND r.usuario.id = :idUsuario")
     RelatorioDistracoesDto contarDistracoesPorUsuario(@Param("dataInicio") LocalDate dataInicio,
                                                       @Param("idUsuario") Long idUsuario);
 
+
+    // =============== EMOÇÕES MAIS FREQUENTES ===================
+
+    @Query("SELECT new com.intuitive.app.DTO.RelatorioEmocoesDto(" +
+            "SUM(CASE WHEN r.emocoesAntes = 'FELIZ' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'TRISTE' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'CALMO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'ANSIOSO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'ESTRESSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'NEUTRO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'CULPADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'FRUSTRADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'CANSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'RELAXADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesAntes = 'ENTEDIADO' THEN 1 ELSE 0 END) " +
+            ") " +
+            "FROM Refeicao r " +
+            "WHERE r.data >= :dataInicio AND r.usuario.id = :idUsuario")
+    RelatorioEmocoesDto contarEmocoesPorUsuario(@Param("dataInicio") LocalDate dataInicio,
+                                                @Param("idUsuario") Long idUsuario);
 }
 
