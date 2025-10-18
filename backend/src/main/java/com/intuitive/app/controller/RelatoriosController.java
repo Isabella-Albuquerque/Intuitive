@@ -17,13 +17,13 @@ public class RelatoriosController {
     private MediaRefeicoesService mediaRefeicoesService;
 
     // 🔹 Média diária dos últimos 7 dias
-    @GetMapping("/ultimos7dias")
+    @GetMapping("/mediarefeicoes/ultimos7dias")
     public Double mediaDiariaUltimos7Dias(@RequestParam Integer idUsuario) {
         return mediaRefeicoesService.mediaDiariaUltimos7Dias(idUsuario);
     }
 
     // Endpoint para média diária dos últimos 30 dias
-    @GetMapping("/ultimos30dias")
+    @GetMapping("mediarefeicoes/ultimos30dias")
     public Double mediaUltimos30Dias(@RequestParam Integer idUsuario) {
         return mediaRefeicoesService.mediaDiariaUltimos30Dias(idUsuario);
     }
@@ -35,13 +35,13 @@ public class RelatoriosController {
         this.distracaoService = distracaoService;
     }
 
-    @GetMapping("/relatorio/distracoes/semanal/{idUsuario}")
+    @GetMapping("distracoes/ultimos7dias/{idUsuario}")
     public List<RelatorioDistracoesDto> distracoesSemana(@PathVariable Long idUsuario) {
         RelatorioDistracoesDto ultimos7Dias = distracaoService.contarUltimos7Dias(idUsuario);
         return Arrays.asList(ultimos7Dias);
     }
 
-    @GetMapping("/relatorio/distracoes/mensal/{idUsuario}")
+    @GetMapping("/distracoes/ultimos30dias/{idUsuario}")
     public List<RelatorioDistracoesDto> distacoesMes(@PathVariable Long idUsuario) {
         RelatorioDistracoesDto ultimos30Dias = distracaoService.contarUltimos30Dias(idUsuario);
         return Arrays.asList(ultimos30Dias);
