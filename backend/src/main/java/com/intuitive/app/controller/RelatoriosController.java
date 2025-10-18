@@ -66,4 +66,16 @@ public class RelatoriosController {
         return Arrays.asList(ultimos30dias);
     }
 
+    @GetMapping("emocoes-depois/ultimos7dias/{idUsuario}")
+    public List<RelatorioEmocoesDto> emocoesDepoisSemana(@PathVariable Long idUsuario){
+        RelatorioEmocoesDto ultimos7dias = emocoesService.contarEmocoesDepoisUltimos7dias(idUsuario);
+        return Arrays.asList(ultimos7dias);
+    }
+
+    @GetMapping("emocoes-depois/ultimos30dias/{idUsuario}")
+    public List<RelatorioEmocoesDto> emocoesDepoisMes(@PathVariable Long idUsuario){
+        RelatorioEmocoesDto ultimos30dias = emocoesService.contarEmocoesDepoisUltimos30dias(idUsuario);
+        return Arrays.asList(ultimos30dias);
+    }
+
 }

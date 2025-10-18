@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Repository
 public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
@@ -57,21 +56,40 @@ public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
     // =============== EMOÇÕES MAIS FREQUENTES ===================
 
     @Query("SELECT new com.intuitive.app.DTO.RelatorioEmocoesDto(" +
-            "SUM(CASE WHEN r.emocoesAntes = 'FELIZ' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'TRISTE' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'CALMO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'ANSIOSO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'ESTRESSADO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'NEUTRO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'CULPADO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'FRUSTRADO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'CANSADO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'RELAXADO' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN r.emocoesAntes = 'ENTEDIADO' THEN 1 ELSE 0 END) " +
+            "SUM(CASE WHEN r.emocoesDepois = 'FELIZ' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'TRISTE' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CALMO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ANSIOSO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ESTRESSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'NEUTRO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CULPADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'FRUSTRADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CANSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'RELAXADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ENTEDIADO' THEN 1 ELSE 0 END) " +
             ") " +
             "FROM Refeicao r " +
             "WHERE r.data >= :dataInicio AND r.usuario.id = :idUsuario")
-    RelatorioEmocoesDto contarEmocoesPorUsuario(@Param("dataInicio") LocalDate dataInicio,
-                                                @Param("idUsuario") Long idUsuario);
+    RelatorioEmocoesDto contarEmocoesAntesPorUsuario(@Param("dataInicio") LocalDate dataInicio,
+                                                     @Param("idUsuario") Long idUsuario);
+
+
+    @Query("SELECT new com.intuitive.app.DTO.RelatorioEmocoesDto(" +
+            "SUM(CASE WHEN r.emocoesDepois = 'FELIZ' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'TRISTE' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CALMO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ANSIOSO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ESTRESSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'NEUTRO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CULPADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'FRUSTRADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'CANSADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'RELAXADO' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN r.emocoesDepois = 'ENTEDIADO' THEN 1 ELSE 0 END) " +
+            ") " +
+            "FROM Refeicao r " +
+            "WHERE r.data >= :dataInicio AND r.usuario.id = :idUsuario")
+    RelatorioEmocoesDto contarEmocoesDepoisPorUsuario(@Param("dataInicio") LocalDate dataInicio,
+                                                     @Param("idUsuario") Long idUsuario);
 }
 

@@ -14,17 +14,30 @@ public class EmocoesService {
     public EmocoesService(RelatoriosRepository repository) {
         this.repository = repository;
     }
-
+//====================== EMOCOES ANTES ================================
 
     public RelatorioEmocoesDto contarUltimos7dias(Long idUsuario){
         LocalDate dataInicio = LocalDate.now().minusDays(7);
-        RelatorioEmocoesDto dto = repository.contarEmocoesPorUsuario(dataInicio, idUsuario);
+        RelatorioEmocoesDto dto = repository.contarEmocoesAntesPorUsuario(dataInicio, idUsuario);
         return dto;
     }
 
     public RelatorioEmocoesDto contarUltimos30dias(Long idUsuario){
         LocalDate dataInicio = LocalDate.now().minusDays(30);
-        RelatorioEmocoesDto dto = repository.contarEmocoesPorUsuario(dataInicio, idUsuario);
+        RelatorioEmocoesDto dto = repository.contarEmocoesAntesPorUsuario(dataInicio, idUsuario);
+        return dto;
+    }
+//====================== EMOCOES DEPOS ================================
+
+    public RelatorioEmocoesDto contarEmocoesDepoisUltimos7dias(Long idUsuario){
+        LocalDate dataInicio = LocalDate.now().minusDays(7);
+        RelatorioEmocoesDto dto = repository.contarEmocoesDepoisPorUsuario(dataInicio, idUsuario);
+        return dto;
+    }
+
+    public RelatorioEmocoesDto contarEmocoesDepoisUltimos30dias(Long idUsuario){
+        LocalDate dataInicio = LocalDate.now().minusDays(30);
+        RelatorioEmocoesDto dto = repository.contarEmocoesDepoisPorUsuario(dataInicio, idUsuario);
         return dto;
     }
 
