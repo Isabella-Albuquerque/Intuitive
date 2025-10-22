@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Keyboard, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/button'
@@ -10,6 +10,7 @@ import { authService, Usuario } from '../../services/authService'
 import { CustomAlert } from '../../components/customAlert'
 import { CustomConfirm } from '../../components/customConfirm'
 import { useAlert } from '../../hooks/useAlert'
+import { ScreenContainer } from '../../components/screenContainer'
 
 export default function Profile() {
     const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
@@ -23,24 +24,6 @@ export default function Profile() {
     const [confirmarSenha, setConfirmarSenha] = useState('')
     const [carregando, setCarregando] = useState(false)
     const { usuario, logout, carregando: carregandoAuth, updateUser } = useAuth()
-
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false)
-
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => setKeyboardVisible(true)
-        )
-        const keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => setKeyboardVisible(false)
-        )
-
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        }
-    }, [])
 
     const handleLogout = async () => {
         try {
@@ -144,159 +127,143 @@ export default function Profile() {
     }
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            enabled={isKeyboardVisible}
-        >
-            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.container,
-                        { paddingBottom: isKeyboardVisible ? 100 : 30 }
-                    ]}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
+        <ScreenContainer>
+            <View style={styles.header}>
+                <TouchableOpacity
+                    onPress={() => router.navigate('/tabs/home')}
+                    style={styles.backButton}
+                    disabled={carregando}
                 >
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            onPress={() => router.navigate('/tabs/home')}
-                            style={styles.backButton}
-                            disabled={carregando}
-                        >
-                            <Ionicons name="arrow-back" size={24} color="#2e6480" />
-                        </TouchableOpacity>
+                    <Ionicons name="arrow-back" size={24} color="#2e6480" />
+                </TouchableOpacity>
 
-                        <TouchableOpacity
-                            onPress={handleLogout}
-                            disabled={carregando}
-                            style={styles.logoutButton}
-                        >
-                            <View style={styles.logoutContainer}>
-                                <Text style={styles.logoutText}>Sair</Text>
-                                <Ionicons name="log-out-outline" size={18} color="#2e6480" />
-                            </View>
-                        </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={handleLogout}
+                    disabled={carregando}
+                    style={styles.logoutButton}
+                >
+                    <View style={styles.logoutContainer}>
+                        <Text style={styles.logoutText}>Sair</Text>
+                        <Ionicons name="log-out-outline" size={18} color="#2e6480" />
                     </View>
+                </TouchableOpacity>
+            </View>
 
-                    <Text style={styles.title}>Meu Perfil</Text>
+            <Text style={styles.title}>Meu Perfil</Text>
 
-                    <View style={styles.form}>
-                        {/* nome */}
-                        <Text style={styles.sectionTitle}>Nome</Text>
-                        <Input
-                            placeholder="Seu nome completo"
-                            onChangeText={setNome}
-                            value={nome}
-                            editable={editMode}
-                            style={!editMode ? styles.disabledInput : styles.input}
-                        />
-
-                        {/* email */}
-                        <Text style={styles.sectionTitle}>E-mail</Text>
-                        <Input
-                            placeholder="Seu e-mail"
-                            onChangeText={setEmail}
-                            value={email}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            editable={editMode}
-                            style={!editMode ? styles.disabledInput : styles.input}
-                        />
-
-                        {/* senha atual (só visualização) */}
-                        <Text style={styles.sectionTitle}>Senha Atual</Text>
-                        <Input
-                            placeholder="Senha"
-                            value={senhaAtual}
-                            editable={false}
-                            style={styles.disabledInput}
-                        />
-
-                        {/* nova senha (só p/ modo edição) */}
-                        {editMode && (
-                            <>
-                                <Text style={styles.sectionTitle}>Nova Senha</Text>
-                                <Input
-                                    placeholder="Digite a nova senha (opcional)"
-                                    onChangeText={setNovaSenha}
-                                    value={novaSenha}
-                                    secureTextEntry
-                                    style={styles.input}
-                                />
-
-                                <Text style={styles.sectionTitle}>Confirmar Nova Senha</Text>
-                                <Input
-                                    placeholder="Confirme a nova senha"
-                                    onChangeText={setConfirmarSenha}
-                                    value={confirmarSenha}
-                                    secureTextEntry
-                                    style={styles.input}
-                                />
-                            </>
-                        )}
-
-                        {editMode ? (
-                            <View style={styles.buttonContainer}>
-                                <Button
-                                    title={carregando ? "Salvando..." : "Salvar Alterações"}
-                                    onPress={handleSave}
-                                    style={styles.saveButton}
-                                    disabled={carregando}
-                                />
-                                <Button
-                                    title="Cancelar"
-                                    onPress={() => {
-                                        setEditMode(false)
-                                        setNovaSenha('')
-                                        setConfirmarSenha('')
-                                        if (usuario) {
-                                            setNome(usuario.nome || '')
-                                            setEmail(usuario.email || '')
-                                        }
-                                    }}
-                                    style={styles.cancelButton}
-                                    disabled={carregando}
-                                />
-                            </View>
-                        ) : (
-                            <Button
-                                title="Alterar Cadastro"
-                                onPress={() => setEditMode(true)}
-                                style={styles.editButton}
-                                disabled={carregando}
-                            />
-                        )}
-
-                        <TouchableOpacity
-                            onPress={handleDeleteAccount}
-                            disabled={carregando}
-                            style={styles.deleteContainer}
-                        >
-                            <Text style={[styles.deleteText, carregando && styles.disabledText]}>
-                                Excluir minha conta
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-
-                <CustomAlert
-                    visible={alertVisible}
-                    title={alertConfig.title}
-                    message={alertConfig.message}
-                    onClose={hideAlert}
+            <View style={styles.form}>
+                {/* nome */}
+                <Text style={styles.sectionTitle}>Nome</Text>
+                <Input
+                    placeholder="Seu nome completo"
+                    onChangeText={setNome}
+                    value={nome}
+                    editable={editMode}
+                    style={!editMode ? styles.disabledInput : styles.input}
                 />
 
-                <CustomConfirm
-                    visible={confirmVisible}
-                    title={confirmConfig.title}
-                    message={confirmConfig.message}
-                    buttons={confirmConfig.buttons}
-                    onClose={hideConfirm}
+                {/* email */}
+                <Text style={styles.sectionTitle}>E-mail</Text>
+                <Input
+                    placeholder="Seu e-mail"
+                    onChangeText={setEmail}
+                    value={email}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={editMode}
+                    style={!editMode ? styles.disabledInput : styles.input}
                 />
-            </SafeAreaView>
-        </KeyboardAvoidingView>
+
+                {/* senha atual (só visualização) */}
+                <Text style={styles.sectionTitle}>Senha Atual</Text>
+                <Input
+                    placeholder="Senha"
+                    value={senhaAtual}
+                    editable={false}
+                    style={styles.disabledInput}
+                />
+
+                {/* nova senha (só p/ modo edição) */}
+                {editMode && (
+                    <>
+                        <Text style={styles.sectionTitle}>Nova Senha</Text>
+                        <Input
+                            placeholder="Digite a nova senha (opcional)"
+                            onChangeText={setNovaSenha}
+                            value={novaSenha}
+                            secureTextEntry
+                            style={styles.input}
+                        />
+
+                        <Text style={styles.sectionTitle}>Confirmar Nova Senha</Text>
+                        <Input
+                            placeholder="Confirme a nova senha"
+                            onChangeText={setConfirmarSenha}
+                            value={confirmarSenha}
+                            secureTextEntry
+                            style={styles.input}
+                        />
+                    </>
+                )}
+
+                {editMode ? (
+                    <View style={styles.buttonContainer}>
+                        <Button
+                            title={carregando ? "Salvando..." : "Salvar Alterações"}
+                            onPress={handleSave}
+                            style={styles.saveButton}
+                            disabled={carregando}
+                        />
+                        <Button
+                            title="Cancelar"
+                            onPress={() => {
+                                setEditMode(false)
+                                setNovaSenha('')
+                                setConfirmarSenha('')
+                                if (usuario) {
+                                    setNome(usuario.nome || '')
+                                    setEmail(usuario.email || '')
+                                }
+                            }}
+                            style={styles.cancelButton}
+                            disabled={carregando}
+                        />
+                    </View>
+                ) : (
+                    <Button
+                        title="Alterar Cadastro"
+                        onPress={() => setEditMode(true)}
+                        style={styles.editButton}
+                        disabled={carregando}
+                    />
+                )}
+
+                <TouchableOpacity
+                    onPress={handleDeleteAccount}
+                    disabled={carregando}
+                    style={styles.deleteContainer}
+                >
+                    <Text style={[styles.deleteText, carregando && styles.disabledText]}>
+                        Excluir minha conta
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
+
+            <CustomConfirm
+                visible={confirmVisible}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                buttons={confirmConfig.buttons}
+                onClose={hideConfirm}
+            />
+        </ScreenContainer>
     )
 }
 
@@ -304,11 +271,6 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fafafa',
-    },
-    container: {
-        flexGrow: 1,
-        padding: 24,
-        backgroundColor: '#fafafa'
     },
     loadingContainer: {
         flex: 1,

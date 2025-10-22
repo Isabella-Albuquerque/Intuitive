@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Keyboard, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -11,6 +10,7 @@ import { Input } from '../components/input'
 import { CustomAlert } from '../components/customAlert'
 import { CustomConfirm } from '../components/customConfirm'
 import { useAlert } from '../hooks/useAlert'
+import { ScreenContainer } from '../components/screenContainer'
 
 interface DropdownEmocoesProps {
     visible: boolean
@@ -53,7 +53,13 @@ export default function RegistroRefeicao() {
         { label: '😞 Triste', value: 'Triste' },
         { label: '😌 Calmo', value: 'Calmo' },
         { label: '😰 Ansioso', value: 'Ansioso' },
-        { label: '😣 Estressado', value: 'Estressado' }
+        { label: '😣 Estressado', value: 'Estressado' },
+        { label: '😐 Neutro', value: 'Neutro' },
+        { label: '😔 Culpado', value: 'Culpado' },
+        { label: '😤 Frustrado', value: 'Frustrado' },
+        { label: '😴 Cansado', value: 'Cansado' },
+        { label: '😎 Relaxado', value: 'Relaxado' },
+        { label: '🥱 Entediado', value: 'Entediado' }
     ]
 
     const opcoesRefeicao = [
@@ -62,35 +68,6 @@ export default function RegistroRefeicao() {
         'Jantar',
         'Lanche'
     ]
-
-    const formatarDataLocal = (data: Date): string => {
-        const dataCorrigida = new Date(data);
-        dataCorrigida.setDate(dataCorrigida.getDate() + 1);
-
-        const ano = dataCorrigida.getFullYear();
-        const mes = String(dataCorrigida.getMonth() + 1).padStart(2, '0');
-        const dia = String(dataCorrigida.getDate()).padStart(2, '0');
-
-        return `${ano}-${mes}-${dia}`;
-    }
-
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false)
-
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => setKeyboardVisible(true)
-        )
-        const keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => setKeyboardVisible(false)
-        )
-
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        }
-    }, [])
 
     const handleCadastrarRefeicao = async () => {
         if (!usuario?.id) {
@@ -102,7 +79,7 @@ export default function RegistroRefeicao() {
             setCarregando(true)
 
             const novaRefeicao: Omit<Refeicao, 'idRefeicao'> = {
-                data: formatarDataLocal(data),
+                data: data.toISOString().split('T')[0],
                 horario: horario.toTimeString().split(' ')[0],
                 tipo: tipo,
                 descricao: descricao,
@@ -163,274 +140,258 @@ export default function RegistroRefeicao() {
     )
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            enabled={isKeyboardVisible}
-        >
-            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.container,
-                        { paddingBottom: isKeyboardVisible ? 100 : 30 }
-                    ]}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                >
+        <ScreenContainer>
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Ionicons name="arrow-back" size={24} color="#2e6480" />
+            </TouchableOpacity>
+
+            <Text style={styles.title}>Registrar Refeição</Text>
+
+            {/* data e hora */}
+            <View style={styles.rowCompact}>
+                <View style={styles.halfInputCompact}>
+                    <Text style={styles.label}>Data *</Text>
                     <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => router.back()}
+                        onPress={() => setShowDatePicker(true)}
+                        style={styles.dataHorarioButtonCompact}
                     >
-                        <Ionicons name="arrow-back" size={24} color="#2e6480" />
+                        <Text style={styles.dataHorarioText}>
+                            {data.toLocaleDateString('pt-BR')}
+                        </Text>
                     </TouchableOpacity>
+                </View>
 
-                    <Text style={styles.title}>Registrar Refeição</Text>
+                <View style={styles.halfInputCompact}>
+                    <Text style={styles.label}>Horário *</Text>
+                    <TouchableOpacity
+                        onPress={() => setShowTimePicker(true)}
+                        style={styles.dataHorarioButtonCompact}
+                    >
+                        <Text style={styles.dataHorarioText}>
+                            {horario.toLocaleTimeString('pt-BR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
-                    {/* data e hora */}
-                    <View style={styles.rowCompact}>
-                        <View style={styles.halfInputCompact}>
-                            <Text style={styles.label}>Data *</Text>
-                            <TouchableOpacity
-                                onPress={() => setShowDatePicker(true)}
-                                style={styles.dataHorarioButtonCompact}
-                            >
-                                <Text style={styles.dataHorarioText}>
-                                    {data.toLocaleDateString('pt-BR')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.halfInputCompact}>
-                            <Text style={styles.label}>Horário *</Text>
-                            <TouchableOpacity
-                                onPress={() => setShowTimePicker(true)}
-                                style={styles.dataHorarioButtonCompact}
-                            >
-                                <Text style={styles.dataHorarioText}>
-                                    {horario.toLocaleTimeString('pt-BR', {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={data}
-                            mode="date"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                setShowDatePicker(false)
-                                if (selectedDate) setData(selectedDate)
-                            }}
-                        />
-                    )}
-
-                    {showTimePicker && (
-                        <DateTimePicker
-                            value={horario}
-                            mode="time"
-                            display="spinner"
-                            onChange={(event, selectedTime) => {
-                                setShowTimePicker(false)
-                                if (selectedTime) setHorario(selectedTime)
-                            }}
-                            is24Hour={true}
-                        />
-                    )}
-
-                    {/* tipo de refeição */}
-                    <Text style={styles.label}>Tipo de Refeição *</Text>
-                    <View style={styles.tipoContainer}>
-                        {opcoesRefeicao.map((opcao) => (
-                            <TouchableOpacity
-                                key={opcao}
-                                style={[
-                                    styles.tipoButton,
-                                    tipo === opcao && styles.tipoButtonSelected
-                                ]}
-                                onPress={() => setTipo(opcao)}
-                            >
-                                <Text style={[
-                                    styles.tipoText,
-                                    tipo === opcao && styles.tipoTextSelected
-                                ]}>
-                                    {opcao}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* descrição */}
-                    <Text style={styles.label}>O que você comeu?</Text>
-                    <View style={styles.inputContainer}>
-                        <Input
-                            placeholder="Escreva brevemente o que você comeu"
-                            value={descricao}
-                            onChangeText={setDescricao}
-                            multiline
-                            numberOfLines={3}
-                            multilineHeight={100}
-                            textAlignVertical="top"
-                            textAlign="left"
-                        />
-                    </View>
-
-                    {/* níveis de fome/saciedade */}
-                    <Text style={styles.label}>Nível de fome antes*</Text>
-                    <View style={styles.nivelContainer}>
-                        {[1, 2, 3, 4, 5].map((nivel) => (
-                            <TouchableOpacity
-                                key={nivel}
-                                style={[
-                                    styles.nivelButton,
-                                    nivelFome === nivel && styles.nivelButtonSelected
-                                ]}
-                                onPress={() => setNivelFome(nivel)}
-                            >
-                                <Text style={[
-                                    styles.nivelText,
-                                    nivelFome === nivel && styles.nivelTextSelected
-                                ]}>
-                                    {nivel}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    <Text style={styles.label}>Nível de saciedade após*</Text>
-                    <View style={styles.nivelContainer}>
-                        {[1, 2, 3, 4, 5].map((nivel) => (
-                            <TouchableOpacity
-                                key={nivel}
-                                style={[
-                                    styles.nivelButton,
-                                    nivelSaciedade === nivel && styles.nivelButtonSelected
-                                ]}
-                                onPress={() => setNivelSaciedade(nivel)}
-                            >
-                                <Text style={[
-                                    styles.nivelText,
-                                    nivelSaciedade === nivel && styles.nivelTextSelected
-                                ]}>
-                                    {nivel}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* emoções */}
-                    <Text style={styles.label}>Emoções</Text>
-                    <View style={styles.emocoesRow}>
-                        <View style={styles.emocoesColumn}>
-                            <Text style={styles.emocoesLabel}>Antes</Text>
-                            <TouchableOpacity
-                                style={styles.dropdownButtonCompact}
-                                onPress={() => setShowEmocoesAntesDropdown(true)}
-                            >
-                                <Text style={emocoesAntes ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                                    {emocoesAntes ? opcoesEmocoes.find(e => e.value === emocoesAntes)?.label : 'Selecionar'}
-                                </Text>
-                                <Ionicons name="chevron-down" size={16} color="#666" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.emocoesColumn}>
-                            <Text style={styles.emocoesLabel}>Depois</Text>
-                            <TouchableOpacity
-                                style={styles.dropdownButtonCompact}
-                                onPress={() => setShowEmocoesDepoisDropdown(true)}
-                            >
-                                <Text style={emocoesDepois ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                                    {emocoesDepois ? opcoesEmocoes.find(e => e.value === emocoesDepois)?.label : 'Selecionar'}
-                                </Text>
-                                <Ionicons name="chevron-down" size={16} color="#666" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <DropdownEmocoes
-                        visible={showEmocoesAntesDropdown}
-                        onClose={() => setShowEmocoesAntesDropdown(false)}
-                        onSelect={setEmocoesAntes}
-                        valorAtual={emocoesAntes}
-                    />
-
-                    <DropdownEmocoes
-                        visible={showEmocoesDepoisDropdown}
-                        onClose={() => setShowEmocoesDepoisDropdown(false)}
-                        onSelect={setEmocoesDepois}
-                        valorAtual={emocoesDepois}
-                    />
-
-                    {/* companhia */}
-                    <Text style={styles.label}>Companhia</Text>
-                    <View style={styles.opcaoContainer}>
-                        <TouchableOpacity
-                            style={[styles.opcaoButton, companhia === 'Sim' && styles.opcaoButtonSelected]}
-                            onPress={() => setCompanhia('Sim')}
-                        >
-                            <Text style={[styles.opcaoText, companhia === 'Sim' && styles.opcaoTextSelected]}>
-                                Sim
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.opcaoButton, companhia === 'Não' && styles.opcaoButtonSelected]}
-                            onPress={() => setCompanhia('Não')}
-                        >
-                            <Text style={[styles.opcaoText, companhia === 'Não' && styles.opcaoTextSelected]}>
-                                Não
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* distrações */}
-                    <Text style={styles.label}>Distrações</Text>
-                    <View style={styles.opcaoContainer}>
-                        <TouchableOpacity
-                            style={[styles.opcaoButton, distracoes === 'Sim' && styles.opcaoButtonSelected]}
-                            onPress={() => setDistracoes('Sim')}
-                        >
-                            <Text style={[styles.opcaoText, distracoes === 'Sim' && styles.opcaoTextSelected]}>
-                                Sim
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.opcaoButton, distracoes === 'Não' && styles.opcaoButtonSelected]}
-                            onPress={() => setDistracoes('Não')}
-                        >
-                            <Text style={[styles.opcaoText, distracoes === 'Não' && styles.opcaoTextSelected]}>
-                                Não
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Button
-                        title={carregando ? "Registrando..." : "Registrar Refeição"}
-                        onPress={handleCadastrarRefeicao}
-                        style={styles.registerButton}
-                        disabled={carregando}
-                    />
-                </ScrollView>
-                <CustomAlert
-                    visible={alertVisible}
-                    title={alertConfig.title}
-                    message={alertConfig.message}
-                    onClose={hideAlert}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={data}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowDatePicker(false)
+                        if (selectedDate) setData(selectedDate)
+                    }}
                 />
+            )}
 
-                <CustomConfirm
-                    visible={confirmVisible}
-                    title={confirmConfig.title}
-                    message={confirmConfig.message}
-                    buttons={confirmConfig.buttons}
-                    onClose={hideConfirm}
+            {showTimePicker && (
+                <DateTimePicker
+                    value={horario}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, selectedTime) => {
+                        setShowTimePicker(false)
+                        if (selectedTime) setHorario(selectedTime)
+                    }}
+                    is24Hour={true}
                 />
-            </SafeAreaView>
-        </KeyboardAvoidingView>
+            )}
+
+            {/* tipo de refeição */}
+            <Text style={styles.label}>Tipo de Refeição *</Text>
+            <View style={styles.tipoContainer}>
+                {opcoesRefeicao.map((opcao) => (
+                    <TouchableOpacity
+                        key={opcao}
+                        style={[
+                            styles.tipoButton,
+                            tipo === opcao && styles.tipoButtonSelected
+                        ]}
+                        onPress={() => setTipo(opcao)}
+                    >
+                        <Text style={[
+                            styles.tipoText,
+                            tipo === opcao && styles.tipoTextSelected
+                        ]}>
+                            {opcao}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {/* descrição */}
+            <Text style={styles.label}>O que você comeu?</Text>
+            <View style={styles.inputContainer}>
+                <Input
+                    placeholder="Escreva brevemente o que você comeu"
+                    value={descricao}
+                    onChangeText={setDescricao}
+                    multiline
+                    numberOfLines={3}
+                    multilineHeight={100}
+                    textAlignVertical="top"
+                    textAlign="left"
+                />
+            </View>
+
+            {/* níveis de fome/saciedade */}
+            <Text style={styles.label}>Nível de fome antes*</Text>
+            <View style={styles.nivelContainer}>
+                {[1, 2, 3, 4, 5].map((nivel) => (
+                    <TouchableOpacity
+                        key={nivel}
+                        style={[
+                            styles.nivelButton,
+                            nivelFome === nivel && styles.nivelButtonSelected
+                        ]}
+                        onPress={() => setNivelFome(nivel)}
+                    >
+                        <Text style={[
+                            styles.nivelText,
+                            nivelFome === nivel && styles.nivelTextSelected
+                        ]}>
+                            {nivel}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <Text style={styles.label}>Nível de saciedade após*</Text>
+            <View style={styles.nivelContainer}>
+                {[1, 2, 3, 4, 5].map((nivel) => (
+                    <TouchableOpacity
+                        key={nivel}
+                        style={[
+                            styles.nivelButton,
+                            nivelSaciedade === nivel && styles.nivelButtonSelected
+                        ]}
+                        onPress={() => setNivelSaciedade(nivel)}
+                    >
+                        <Text style={[
+                            styles.nivelText,
+                            nivelSaciedade === nivel && styles.nivelTextSelected
+                        ]}>
+                            {nivel}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {/* emoções */}
+            <Text style={styles.label}>Emoções</Text>
+            <View style={styles.emocoesRow}>
+                <View style={styles.emocoesColumn}>
+                    <Text style={styles.emocoesLabel}>Antes</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownButtonCompact}
+                        onPress={() => setShowEmocoesAntesDropdown(true)}
+                    >
+                        <Text style={emocoesAntes ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
+                            {emocoesAntes ? opcoesEmocoes.find(e => e.value === emocoesAntes)?.label : 'Selecionar'}
+                        </Text>
+                        <Ionicons name="chevron-down" size={16} color="#666" />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.emocoesColumn}>
+                    <Text style={styles.emocoesLabel}>Depois</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownButtonCompact}
+                        onPress={() => setShowEmocoesDepoisDropdown(true)}
+                    >
+                        <Text style={emocoesDepois ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
+                            {emocoesDepois ? opcoesEmocoes.find(e => e.value === emocoesDepois)?.label : 'Selecionar'}
+                        </Text>
+                        <Ionicons name="chevron-down" size={16} color="#666" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <DropdownEmocoes
+                visible={showEmocoesAntesDropdown}
+                onClose={() => setShowEmocoesAntesDropdown(false)}
+                onSelect={setEmocoesAntes}
+                valorAtual={emocoesAntes}
+            />
+
+            <DropdownEmocoes
+                visible={showEmocoesDepoisDropdown}
+                onClose={() => setShowEmocoesDepoisDropdown(false)}
+                onSelect={setEmocoesDepois}
+                valorAtual={emocoesDepois}
+            />
+
+            {/* companhia */}
+            <Text style={styles.label}>Companhia</Text>
+            <View style={styles.opcaoContainer}>
+                <TouchableOpacity
+                    style={[styles.opcaoButton, companhia === 'Sim' && styles.opcaoButtonSelected]}
+                    onPress={() => setCompanhia('Sim')}
+                >
+                    <Text style={[styles.opcaoText, companhia === 'Sim' && styles.opcaoTextSelected]}>
+                        Sim
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.opcaoButton, companhia === 'Não' && styles.opcaoButtonSelected]}
+                    onPress={() => setCompanhia('Não')}
+                >
+                    <Text style={[styles.opcaoText, companhia === 'Não' && styles.opcaoTextSelected]}>
+                        Não
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* distrações */}
+            <Text style={styles.label}>Distrações</Text>
+            <View style={styles.opcaoContainer}>
+                <TouchableOpacity
+                    style={[styles.opcaoButton, distracoes === 'Sim' && styles.opcaoButtonSelected]}
+                    onPress={() => setDistracoes('Sim')}
+                >
+                    <Text style={[styles.opcaoText, distracoes === 'Sim' && styles.opcaoTextSelected]}>
+                        Sim
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.opcaoButton, distracoes === 'Não' && styles.opcaoButtonSelected]}
+                    onPress={() => setDistracoes('Não')}
+                >
+                    <Text style={[styles.opcaoText, distracoes === 'Não' && styles.opcaoTextSelected]}>
+                        Não
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <Button
+                title={carregando ? "Registrando..." : "Registrar Refeição"}
+                onPress={handleCadastrarRefeicao}
+                style={styles.registerButton}
+                disabled={carregando}
+            />
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
+
+            <CustomConfirm
+                visible={confirmVisible}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                buttons={confirmConfig.buttons}
+                onClose={hideConfirm}
+            />
+        </ScreenContainer>
     )
 }
 

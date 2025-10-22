@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Keyboard, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -11,6 +11,7 @@ import { Input } from '../components/input'
 import { CustomAlert } from '../components/customAlert'
 import { CustomConfirm } from '../components/customConfirm'
 import { useAlert } from '../hooks/useAlert'
+import { ScreenContainer } from '../components/screenContainer'
 
 interface DropdownEmocoesProps {
     visible: boolean
@@ -60,35 +61,6 @@ export default function DetalhesRefeicao() {
 
     const opcoesRefeicao = ['Café da manhã', 'Almoço', 'Jantar', 'Lanche']
 
-    const formatarDataLocal = (data: Date): string => {
-        const dataCorrigida = new Date(data);
-        dataCorrigida.setDate(dataCorrigida.getDate() + 1);
-
-        const ano = dataCorrigida.getFullYear();
-        const mes = String(dataCorrigida.getMonth() + 1).padStart(2, '0');
-        const dia = String(dataCorrigida.getDate()).padStart(2, '0');
-
-        return `${ano}-${mes}-${dia}`;
-    }
-
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false)
-
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => setKeyboardVisible(true)
-        )
-        const keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => setKeyboardVisible(false)
-        )
-
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        }
-    }, [])
-
     useEffect(() => {
         carregarRefeicao()
     }, [id])
@@ -130,7 +102,7 @@ export default function DetalhesRefeicao() {
 
             const refeicaoAtualizada: Refeicao = {
                 idRefeicao: Number(id),
-                data: formatarDataLocal(data),
+                data: data.toISOString().split('T')[0],
                 horario: horario.toTimeString().split(' ')[0],
                 tipo: tipo,
                 descricao: descricao,
@@ -228,354 +200,337 @@ export default function DetalhesRefeicao() {
     }
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            enabled={isKeyboardVisible}
-        >
-            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.container,
-                        { paddingBottom: isKeyboardVisible ? 100 : 30 }
-                    ]}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
+        <ScreenContainer>
+            <View style={styles.header}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
                 >
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            style={styles.backButton}
-                            onPress={() => router.back()}
-                        >
-                            <Ionicons name="arrow-back" size={24} color="#2e6480" />
-                        </TouchableOpacity>
+                    <Ionicons name="arrow-back" size={24} color="#2e6480" />
+                </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.editButtonHeader}
-                            onPress={() => setEditMode(!editMode)}
-                            disabled={carregando}
-                        >
-                            <Text style={styles.editButtonText}>
-                                {editMode ? 'Cancelar' : 'Editar'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.title}>
-                        {editMode ? 'Editar Refeição' : 'Detalhes da Refeição'}
+                <TouchableOpacity
+                    style={styles.editButtonHeader}
+                    onPress={() => setEditMode(!editMode)}
+                    disabled={carregando}
+                >
+                    <Text style={styles.editButtonText}>
+                        {editMode ? 'Cancelar' : 'Editar'}
                     </Text>
+                </TouchableOpacity>
+            </View>
 
-                    {/* data e hora */}
-                    <View style={styles.rowCompact}>
-                        <View style={styles.halfInputCompact}>
-                            <Text style={styles.label}>Data *</Text>
-                            <TouchableOpacity
-                                onPress={() => editMode && setShowDatePicker(true)}
-                                style={[
-                                    styles.dataHorarioButtonCompact,
-                                    !editMode && styles.disabledField
-                                ]}
-                                disabled={!editMode}
-                            >
-                                <Text style={styles.dataHorarioText}>
-                                    {data.toLocaleDateString('pt-BR')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+            <Text style={styles.title}>
+                {editMode ? 'Editar Refeição' : 'Detalhes da Refeição'}
+            </Text>
 
-                        <View style={styles.halfInputCompact}>
-                            <Text style={styles.label}>Horário *</Text>
-                            <TouchableOpacity
-                                onPress={() => editMode && setShowTimePicker(true)}
-                                style={[
-                                    styles.dataHorarioButtonCompact,
-                                    !editMode && styles.disabledField
-                                ]}
-                                disabled={!editMode}
-                            >
-                                <Text style={styles.dataHorarioText}>
-                                    {horario.toLocaleTimeString('pt-BR', {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+            {/* data e hora */}
+            <View style={styles.rowCompact}>
+                <View style={styles.halfInputCompact}>
+                    <Text style={styles.label}>Data *</Text>
+                    <TouchableOpacity
+                        onPress={() => editMode && setShowDatePicker(true)}
+                        style={[
+                            styles.dataHorarioButtonCompact,
+                            !editMode && styles.disabledField
+                        ]}
+                        disabled={!editMode}
+                    >
+                        <Text style={styles.dataHorarioText}>
+                            {data.toLocaleDateString('pt-BR')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
 
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={data}
-                            mode="date"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                setShowDatePicker(false)
-                                if (selectedDate) setData(selectedDate)
-                            }}
-                        />
-                    )}
+                <View style={styles.halfInputCompact}>
+                    <Text style={styles.label}>Horário *</Text>
+                    <TouchableOpacity
+                        onPress={() => editMode && setShowTimePicker(true)}
+                        style={[
+                            styles.dataHorarioButtonCompact,
+                            !editMode && styles.disabledField
+                        ]}
+                        disabled={!editMode}
+                    >
+                        <Text style={styles.dataHorarioText}>
+                            {horario.toLocaleTimeString('pt-BR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
-                    {showTimePicker && (
-                        <DateTimePicker
-                            value={horario}
-                            mode="time"
-                            display="spinner"
-                            onChange={(event, selectedTime) => {
-                                setShowTimePicker(false)
-                                if (selectedTime) setHorario(selectedTime)
-                            }}
-                            is24Hour={true}
-                        />
-                    )}
-
-                    {/* tipo de refeição */}
-                    <Text style={styles.label}>Tipo de Refeição *</Text>
-                    <View style={styles.tipoContainer}>
-                        {opcoesRefeicao.map((opcao) => (
-                            <TouchableOpacity
-                                key={opcao}
-                                style={[
-                                    styles.tipoButton,
-                                    tipo === opcao && styles.tipoButtonSelected,
-                                    !editMode && styles.disabledField
-                                ]}
-                                onPress={() => editMode && setTipo(opcao)}
-                                disabled={!editMode}
-                            >
-                                <Text style={[
-                                    styles.tipoText,
-                                    tipo === opcao && styles.tipoTextSelected
-                                ]}>
-                                    {opcao}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* descrição */}
-                    <Text style={styles.label}>O que você comeu?</Text>
-                    <Input
-                        placeholder="Escreva brevemente o que você comeu"
-                        value={descricao}
-                        onChangeText={setDescricao}
-                        multiline
-                        numberOfLines={3}
-                        multilineHeight={100}
-                        textAlignVertical="top"
-                        textAlign="left"
-                        editable={editMode}
-                        style={!editMode ? styles.disabledInput : undefined}
-                    />
-
-                    {/* níveis de fome/saciedade */}
-                    <Text style={styles.label}>Nível de fome antes*</Text>
-                    <View style={styles.nivelContainer}>
-                        {[1, 2, 3, 4, 5].map((nivel) => (
-                            <TouchableOpacity
-                                key={nivel}
-                                style={[
-                                    styles.nivelButton,
-                                    nivelFome === nivel && styles.nivelButtonSelected,
-                                    !editMode && styles.disabledField
-                                ]}
-                                onPress={() => editMode && setNivelFome(nivel)}
-                                disabled={!editMode}
-                            >
-                                <Text style={[
-                                    styles.nivelText,
-                                    nivelFome === nivel && styles.nivelTextSelected
-                                ]}>
-                                    {nivel}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    <Text style={styles.label}>Nível de saciedade após*</Text>
-                    <View style={styles.nivelContainer}>
-                        {[1, 2, 3, 4, 5].map((nivel) => (
-                            <TouchableOpacity
-                                key={nivel}
-                                style={[
-                                    styles.nivelButton,
-                                    nivelSaciedade === nivel && styles.nivelButtonSelected,
-                                    !editMode && styles.disabledField
-                                ]}
-                                onPress={() => editMode && setNivelSaciedade(nivel)}
-                                disabled={!editMode}
-                            >
-                                <Text style={[
-                                    styles.nivelText,
-                                    nivelSaciedade === nivel && styles.nivelTextSelected
-                                ]}>
-                                    {nivel}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* emoções */}
-                    <Text style={styles.label}>Emoções</Text>
-                    <View style={styles.emocoesRow}>
-                        <View style={styles.emocoesColumn}>
-                            <Text style={styles.emocoesLabel}>Antes</Text>
-                            <TouchableOpacity
-                                style={[
-                                    styles.dropdownButtonCompact,
-                                    !editMode && styles.disabledField
-                                ]}
-                                onPress={() => editMode && setShowEmocoesAntesDropdown(true)}
-                                disabled={!editMode}
-                            >
-                                <Text style={emocoesAntes ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                                    {emocoesAntes ? opcoesEmocoes.find(e => e.value === emocoesAntes)?.label : 'Selecionar'}
-                                </Text>
-                                <Ionicons name="chevron-down" size={16} color="#666" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.emocoesColumn}>
-                            <Text style={styles.emocoesLabel}>Depois</Text>
-                            <TouchableOpacity
-                                style={[
-                                    styles.dropdownButtonCompact,
-                                    !editMode && styles.disabledField
-                                ]}
-                                onPress={() => editMode && setShowEmocoesDepoisDropdown(true)}
-                                disabled={!editMode}
-                            >
-                                <Text style={emocoesDepois ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                                    {emocoesDepois ? opcoesEmocoes.find(e => e.value === emocoesDepois)?.label : 'Selecionar'}
-                                </Text>
-                                <Ionicons name="chevron-down" size={16} color="#666" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <DropdownEmocoes
-                        visible={showEmocoesAntesDropdown}
-                        onClose={() => setShowEmocoesAntesDropdown(false)}
-                        onSelect={setEmocoesAntes}
-                        valorAtual={emocoesAntes}
-                    />
-
-                    <DropdownEmocoes
-                        visible={showEmocoesDepoisDropdown}
-                        onClose={() => setShowEmocoesDepoisDropdown(false)}
-                        onSelect={setEmocoesDepois}
-                        valorAtual={emocoesDepois}
-                    />
-
-                    {/* companhia */}
-                    <Text style={styles.label}>Companhia</Text>
-                    <View style={styles.opcaoContainer}>
-                        <TouchableOpacity
-                            style={[
-                                styles.opcaoButton,
-                                companhia === 'Sim' && styles.opcaoButtonSelected,
-                                !editMode && styles.disabledField
-                            ]}
-                            onPress={() => editMode && setCompanhia('Sim')}
-                            disabled={!editMode}
-                        >
-                            <Text style={[
-                                styles.opcaoText,
-                                companhia === 'Sim' && styles.opcaoTextSelected
-                            ]}>
-                                Sim
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.opcaoButton,
-                                companhia === 'Não' && styles.opcaoButtonSelected,
-                                !editMode && styles.disabledField
-                            ]}
-                            onPress={() => editMode && setCompanhia('Não')}
-                            disabled={!editMode}
-                        >
-                            <Text style={[
-                                styles.opcaoText,
-                                companhia === 'Não' && styles.opcaoTextSelected
-                            ]}>
-                                Não
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* distrações */}
-                    <Text style={styles.label}>Distrações</Text>
-                    <View style={styles.opcaoContainer}>
-                        <TouchableOpacity
-                            style={[
-                                styles.opcaoButton,
-                                distracoes === 'Sim' && styles.opcaoButtonSelected,
-                                !editMode && styles.disabledField
-                            ]}
-                            onPress={() => editMode && setDistracoes('Sim')}
-                            disabled={!editMode}
-                        >
-                            <Text style={[
-                                styles.opcaoText,
-                                distracoes === 'Sim' && styles.opcaoTextSelected
-                            ]}>
-                                Sim
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.opcaoButton,
-                                distracoes === 'Não' && styles.opcaoButtonSelected,
-                                !editMode && styles.disabledField
-                            ]}
-                            onPress={() => editMode && setDistracoes('Não')}
-                            disabled={!editMode}
-                        >
-                            <Text style={[
-                                styles.opcaoText,
-                                distracoes === 'Não' && styles.opcaoTextSelected
-                            ]}>
-                                Não
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* atualizar/excluir */}
-                    {editMode ? (
-                        <Button
-                            title={carregando ? "Atualizando..." : "Atualizar Refeição"}
-                            onPress={handleAtualizarRefeicao}
-                            style={styles.updateButton}
-                            disabled={carregando}
-                        />
-                    ) : (
-                        <TouchableOpacity
-                            onPress={handleExcluirRefeicao}
-                            style={styles.deleteButton}
-                        >
-                            <Text style={styles.deleteButtonText}>Excluir Refeição</Text>
-                        </TouchableOpacity>
-                    )}
-
-                </ScrollView>
-
-                <CustomAlert
-                    visible={alertVisible}
-                    title={alertConfig.title}
-                    message={alertConfig.message}
-                    onClose={hideAlert}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={data}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowDatePicker(false)
+                        if (selectedDate) setData(selectedDate)
+                    }}
                 />
+            )}
 
-                <CustomConfirm
-                    visible={confirmVisible}
-                    title={confirmConfig.title}
-                    message={confirmConfig.message}
-                    buttons={confirmConfig.buttons}
-                    onClose={hideConfirm}
+            {showTimePicker && (
+                <DateTimePicker
+                    value={horario}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, selectedTime) => {
+                        setShowTimePicker(false)
+                        if (selectedTime) setHorario(selectedTime)
+                    }}
+                    is24Hour={true}
                 />
-            </SafeAreaView>
-        </KeyboardAvoidingView>
+            )}
+
+            {/* tipo de refeição */}
+            <Text style={styles.label}>Tipo de Refeição *</Text>
+            <View style={styles.tipoContainer}>
+                {opcoesRefeicao.map((opcao) => (
+                    <TouchableOpacity
+                        key={opcao}
+                        style={[
+                            styles.tipoButton,
+                            tipo === opcao && styles.tipoButtonSelected,
+                            !editMode && styles.disabledField
+                        ]}
+                        onPress={() => editMode && setTipo(opcao)}
+                        disabled={!editMode}
+                    >
+                        <Text style={[
+                            styles.tipoText,
+                            tipo === opcao && styles.tipoTextSelected
+                        ]}>
+                            {opcao}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {/* descrição */}
+            <Text style={styles.label}>O que você comeu?</Text>
+            <Input
+                placeholder="Escreva brevemente o que você comeu"
+                value={descricao}
+                onChangeText={setDescricao}
+                multiline
+                numberOfLines={3}
+                multilineHeight={100}
+                textAlignVertical="top"
+                textAlign="left"
+                editable={editMode}
+                style={!editMode ? styles.disabledInput : undefined}
+            />
+
+            {/* níveis de fome/saciedade */}
+            <Text style={styles.label}>Nível de fome antes*</Text>
+            <View style={styles.nivelContainer}>
+                {[1, 2, 3, 4, 5].map((nivel) => (
+                    <TouchableOpacity
+                        key={nivel}
+                        style={[
+                            styles.nivelButton,
+                            nivelFome === nivel && styles.nivelButtonSelected,
+                            !editMode && styles.disabledField
+                        ]}
+                        onPress={() => editMode && setNivelFome(nivel)}
+                        disabled={!editMode}
+                    >
+                        <Text style={[
+                            styles.nivelText,
+                            nivelFome === nivel && styles.nivelTextSelected
+                        ]}>
+                            {nivel}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <Text style={styles.label}>Nível de saciedade após*</Text>
+            <View style={styles.nivelContainer}>
+                {[1, 2, 3, 4, 5].map((nivel) => (
+                    <TouchableOpacity
+                        key={nivel}
+                        style={[
+                            styles.nivelButton,
+                            nivelSaciedade === nivel && styles.nivelButtonSelected,
+                            !editMode && styles.disabledField
+                        ]}
+                        onPress={() => editMode && setNivelSaciedade(nivel)}
+                        disabled={!editMode}
+                    >
+                        <Text style={[
+                            styles.nivelText,
+                            nivelSaciedade === nivel && styles.nivelTextSelected
+                        ]}>
+                            {nivel}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {/* emoções */}
+            <Text style={styles.label}>Emoções</Text>
+            <View style={styles.emocoesRow}>
+                <View style={styles.emocoesColumn}>
+                    <Text style={styles.emocoesLabel}>Antes</Text>
+                    <TouchableOpacity
+                        style={[
+                            styles.dropdownButtonCompact,
+                            !editMode && styles.disabledField
+                        ]}
+                        onPress={() => editMode && setShowEmocoesAntesDropdown(true)}
+                        disabled={!editMode}
+                    >
+                        <Text style={emocoesAntes ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
+                            {emocoesAntes ? opcoesEmocoes.find(e => e.value === emocoesAntes)?.label : 'Selecionar'}
+                        </Text>
+                        <Ionicons name="chevron-down" size={16} color="#666" />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.emocoesColumn}>
+                    <Text style={styles.emocoesLabel}>Depois</Text>
+                    <TouchableOpacity
+                        style={[
+                            styles.dropdownButtonCompact,
+                            !editMode && styles.disabledField
+                        ]}
+                        onPress={() => editMode && setShowEmocoesDepoisDropdown(true)}
+                        disabled={!editMode}
+                    >
+                        <Text style={emocoesDepois ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
+                            {emocoesDepois ? opcoesEmocoes.find(e => e.value === emocoesDepois)?.label : 'Selecionar'}
+                        </Text>
+                        <Ionicons name="chevron-down" size={16} color="#666" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <DropdownEmocoes
+                visible={showEmocoesAntesDropdown}
+                onClose={() => setShowEmocoesAntesDropdown(false)}
+                onSelect={setEmocoesAntes}
+                valorAtual={emocoesAntes}
+            />
+
+            <DropdownEmocoes
+                visible={showEmocoesDepoisDropdown}
+                onClose={() => setShowEmocoesDepoisDropdown(false)}
+                onSelect={setEmocoesDepois}
+                valorAtual={emocoesDepois}
+            />
+
+            {/* companhia */}
+            <Text style={styles.label}>Companhia</Text>
+            <View style={styles.opcaoContainer}>
+                <TouchableOpacity
+                    style={[
+                        styles.opcaoButton,
+                        companhia === 'Sim' && styles.opcaoButtonSelected,
+                        !editMode && styles.disabledField
+                    ]}
+                    onPress={() => editMode && setCompanhia('Sim')}
+                    disabled={!editMode}
+                >
+                    <Text style={[
+                        styles.opcaoText,
+                        companhia === 'Sim' && styles.opcaoTextSelected
+                    ]}>
+                        Sim
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.opcaoButton,
+                        companhia === 'Não' && styles.opcaoButtonSelected,
+                        !editMode && styles.disabledField
+                    ]}
+                    onPress={() => editMode && setCompanhia('Não')}
+                    disabled={!editMode}
+                >
+                    <Text style={[
+                        styles.opcaoText,
+                        companhia === 'Não' && styles.opcaoTextSelected
+                    ]}>
+                        Não
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* distrações */}
+            <Text style={styles.label}>Distrações</Text>
+            <View style={styles.opcaoContainer}>
+                <TouchableOpacity
+                    style={[
+                        styles.opcaoButton,
+                        distracoes === 'Sim' && styles.opcaoButtonSelected,
+                        !editMode && styles.disabledField
+                    ]}
+                    onPress={() => editMode && setDistracoes('Sim')}
+                    disabled={!editMode}
+                >
+                    <Text style={[
+                        styles.opcaoText,
+                        distracoes === 'Sim' && styles.opcaoTextSelected
+                    ]}>
+                        Sim
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.opcaoButton,
+                        distracoes === 'Não' && styles.opcaoButtonSelected,
+                        !editMode && styles.disabledField
+                    ]}
+                    onPress={() => editMode && setDistracoes('Não')}
+                    disabled={!editMode}
+                >
+                    <Text style={[
+                        styles.opcaoText,
+                        distracoes === 'Não' && styles.opcaoTextSelected
+                    ]}>
+                        Não
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* atualizar/excluir */}
+            {editMode ? (
+                <Button
+                    title={carregando ? "Atualizando..." : "Atualizar Refeição"}
+                    onPress={handleAtualizarRefeicao}
+                    style={styles.updateButton}
+                    disabled={carregando}
+                />
+            ) : (
+                <TouchableOpacity
+                    onPress={handleExcluirRefeicao}
+                    style={styles.deleteButton}
+                >
+                    <Text style={styles.deleteButtonText}>Excluir Refeição</Text>
+                </TouchableOpacity>
+            )}
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+            />
+
+            <CustomConfirm
+                visible={confirmVisible}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                buttons={confirmConfig.buttons}
+                onClose={hideConfirm}
+            />
+        </ScreenContainer>
     )
 }
 

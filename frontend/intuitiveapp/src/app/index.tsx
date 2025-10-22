@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from 'react-native'
 import { router } from 'expo-router'
 import { Button } from '../components/button'
 import { Input } from '../components/input'
 import { useAuth } from '../hooks/useAuth'
 import { CustomAlert } from '../components/customAlert'
 import { useAlert } from '../hooks/useAlert'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import {
     useFonts,
@@ -50,8 +51,8 @@ export default function Login() {
         )
 
         return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
+            keyboardDidShowListener.remove()
+            keyboardDidHideListener.remove()
         }
     }, [])
 
@@ -86,81 +87,99 @@ export default function Login() {
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            behavior="height"
             enabled={isKeyboardVisible}
         >
-            <View
-                style={styles.container}
-                onStartShouldSetResponder={() => true}
-                onResponderRelease={Keyboard.dismiss}
+            <SafeAreaView style={styles.safeArea} edges={['top']}>
+                <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
-                <View style={styles.header}>
-                    <Image
-                        source={require('../../assets/images/Logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-                </View>
+                    <View
+                        style={styles.container}
+                        onStartShouldSetResponder={Platform.OS === 'web' ? undefined : () => true}
 
-                {/* login */}
-                <View style={styles.form}>
-                    <Input
-                        placeholder="E-mail"
-                        onChangeText={setEmail}
-                        value={email}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        editable={!carregando}
-                    />
+                        onResponderRelease={Keyboard.dismiss}
+                    >
+                        <View style={styles.header}>
+                            <Image
+                                source={require('../../assets/images/Logo.png')}
+                                style={styles.logo}
+                                resizeMode="contain"
+                            />
+                        </View>
 
-                    <Input
-                        placeholder="Senha"
-                        onChangeText={setPassword}
-                        value={password}
-                        secureTextEntry
-                        editable={!carregando}
-                    />
+                        {/* login */}
+                        <View style={styles.form}>
+                            <Input
+                                placeholder="E-mail"
+                                onChangeText={setEmail}
+                                value={email}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                editable={!carregando}
+                            />
 
-                    <TouchableOpacity onPress={handleForgotPassword} disabled={carregando}>
-                        <Text style={[styles.forgotPassword, carregando && styles.disabledText, { fontFamily: 'Poppins-Regular' }]}>
-                            Esqueceu a senha?
-                        </Text>
-                    </TouchableOpacity>
+                            <Input
+                                placeholder="Senha"
+                                onChangeText={setPassword}
+                                value={password}
+                                secureTextEntry
+                                editable={!carregando}
+                            />
 
-                    <Button
-                        title={carregando ? "Entrando..." : "Entrar"}
-                        onPress={handleLogin}
-                        style={styles.loginButton}
-                        disabled={carregando}
-                    />
-                </View>
+                            <TouchableOpacity onPress={handleForgotPassword} disabled={carregando}>
+                                <Text style={[styles.forgotPassword, carregando && styles.disabledText, { fontFamily: 'Poppins-Regular' }]}>
+                                    Esqueceu a senha?
+                                </Text>
+                            </TouchableOpacity>
 
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>Não tem uma conta? </Text>
-                    <TouchableOpacity onPress={handleRegister} disabled={carregando}>
-                        <Text style={[styles.registerLink, carregando && styles.disabledText]}>
-                            Cadastre-se
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-                <CustomAlert
-                    visible={alertVisible}
-                    title={alertConfig.title}
-                    message={alertConfig.message}
-                    onClose={hideAlert}
-                />
-            </View>
+                            <Button
+                                title={carregando ? "Entrando..." : "Entrar"}
+                                onPress={handleLogin}
+                                style={styles.loginButton}
+                                disabled={carregando}
+                            />
+                        </View>
+
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Não tem uma conta? </Text>
+                            <TouchableOpacity onPress={handleRegister} disabled={carregando}>
+                                <Text style={[styles.registerLink, carregando && styles.disabledText]}>
+                                    Cadastre-se
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                        <CustomAlert
+                            visible={alertVisible}
+                            title={alertConfig.title}
+                            message={alertConfig.message}
+                            onClose={hideAlert}
+                        />
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
         </KeyboardAvoidingView>
     )
 }
 
 const styles = StyleSheet.create({
+
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#f8f9fa'
+    },
     container: {
         flex: 1,
         padding: 32,
         justifyContent: "center",
-        backgroundColor: '#fafafa'
+        backgroundColor: '#fafafa',
+        maxWidth: '100%',
+        width:'100%'
+    },
+    scrollContent: {
+        flexGrow: 1
     },
     loadingContainer: {
         flex: 1,
@@ -183,7 +202,8 @@ const styles = StyleSheet.create({
     },
     form: {
         gap: 16,
-        marginBottom: 32
+        marginBottom: 32,
+        width: '100%'
     },
     forgotPassword: {
         color: '#5c503a',
