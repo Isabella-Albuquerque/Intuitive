@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: intuitive-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: intuitive
+      MYSQL_USER: intuitive
+      MYSQL_PASSWORD: intuitive123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  backend:
+    image: katiamartins13/intuitive-backend:latest
+    container_name: intuitive-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/intuitive
+      SPRING_DATASOURCE_USERNAME: intuitive
+      SPRING_DATASOURCE_PASSWORD: intuitive123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+
+  frontend:
+    image: katiamartins13/intuitive-frontend:latest
+    container_name: intuitive-frontend
+    restart: unless-stopped
+    ports:
+      - "19006:19006"
+      - "8081:8081"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
