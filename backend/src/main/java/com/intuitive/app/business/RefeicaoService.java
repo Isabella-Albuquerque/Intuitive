@@ -140,6 +140,15 @@ public class RefeicaoService {
         if (dto.getTipo() == null || dto.getTipo().isEmpty()) {
             throw new IllegalArgumentException("Você deve informar o tipo da refeição");
         }
+        if (dto.getDistracoes() == null || dto.getDistracoes().isEmpty()) {
+            throw new IllegalArgumentException("Você deve informar se houve distrações durante a refeição");
+        }
+        if (dto.getEmocoesAntes() == null || dto.getEmocoesAntes().isEmpty()) {
+            throw new IllegalArgumentException("Você deve informar as emoções sentidas antes da refeição");
+        }
+        if (dto.getEmocoesDepois() == null || dto.getEmocoesDepois().isEmpty()) {
+            throw new IllegalArgumentException("Você deve informar as emoções sentidas depois da refeição");
+        }
         if (dto.getNivelFome() == null) {
             throw new IllegalArgumentException("Você deve informar o nível de fome");
         }

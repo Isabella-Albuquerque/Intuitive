@@ -91,5 +91,37 @@ public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
             "WHERE r.data >= :dataInicio AND r.usuario.id = :idUsuario")
     RelatorioEmocoesDto contarEmocoesDepoisPorUsuario(@Param("dataInicio") LocalDate dataInicio,
                                                      @Param("idUsuario") Long idUsuario);
+
+    //===================== MÉDIA DE FOME =============================
+    @Query("""
+       SELECT AVG(mediaDia)
+       FROM (
+           SELECT AVG(r.nivelFome) AS mediaDia
+           FROM Refeicao r
+           WHERE r.usuario.id = :idUsuario
+           AND r.data BETWEEN :inicio AND :fim
+           GROUP BY r.data
+       ) AS medias
+       """)
+    Double calcularMediaFome(@Param("idUsuario") Integer idUsuario,
+                                 @Param("inicio") LocalDate inicio,
+                                 @Param("fim") LocalDate fim);
+
+    //===================== MÉDIA DE FOME =============================
+    @Query("""
+       SELECT AVG(mediaDia)
+       FROM (
+           SELECT AVG(r.nivelSaciedade) AS mediaDia
+           FROM Refeicao r
+           WHERE r.usuario.id = :idUsuario
+           AND r.data BETWEEN :inicio AND :fim
+           GROUP BY r.data
+       ) AS medias
+       """)
+    Double calcularMediaSaciedade(@Param("idUsuario") Integer idUsuario,
+                             @Param("inicio") LocalDate inicio,
+                             @Param("fim") LocalDate fim);
+
+
 }
 

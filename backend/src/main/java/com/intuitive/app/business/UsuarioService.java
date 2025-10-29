@@ -31,6 +31,7 @@ public class UsuarioService {
         validarCamposObrigatorios(usuario);
         validarEmail(usuario.getEmail());
         validarDtNascimento(usuario.getDtNascimento());
+        validarSenha(usuario.getSenha());
 
         if (repository.findByEmail(usuario.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Este e-mail já está em uso");
@@ -61,6 +62,7 @@ public class UsuarioService {
             }
             usuarioExistente.setEmail(usuarioAtualizado.getEmail());
         }
+        validarSenha(usuarioAtualizado.getSenha());
 
         // Atualiza outros campos se não forem nulos
         if (usuarioAtualizado.getNome() != null && !usuarioAtualizado.getNome().isEmpty()) {
@@ -79,6 +81,7 @@ public class UsuarioService {
             validarDtNascimento(usuarioAtualizado.getDtNascimento());
             usuarioExistente.setDtNascimento(usuarioAtualizado.getDtNascimento());
         }
+
 
         repository.saveAndFlush(usuarioExistente);
     }
@@ -124,6 +127,22 @@ public class UsuarioService {
             throw new IllegalArgumentException("Ops! Você deve informar sua data de nascimento");
         }
     }
+ //valida senha forte
+    private static final Pattern SENHA_FORTE_PATTERN = Pattern.compile(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+    );
+
+    private void validarSenha(String senha) {
+        if (senha == null || senha.isEmpty()) {
+            throw new IllegalArgumentException("Ops! Você deve informar sua senha");
+        }
+        if (!SENHA_FORTE_PATTERN.matcher(senha).matches()) {
+            throw new IllegalArgumentException(
+                    "A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial"
+            );
+        }
+    }
+
 
     private void validarEmail(String email) {
         if (!EMAIL_PATTERN.matcher(email).matches()) {

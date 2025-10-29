@@ -2,9 +2,7 @@ package com.intuitive.app.controller;
 
 import com.intuitive.app.DTO.RelatorioDistracoesDto;
 import com.intuitive.app.DTO.RelatorioEmocoesDto;
-import com.intuitive.app.business.RelatoriosService.DistracaoService;
-import com.intuitive.app.business.RelatoriosService.EmocoesService;
-import com.intuitive.app.business.RelatoriosService.MediaRefeicoesService;
+import com.intuitive.app.business.RelatoriosService.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,9 +32,11 @@ public class RelatoriosController {
 //========================RELATORIO DISTRACAO===================================
     private final DistracaoService distracaoService;
 
-    public RelatoriosController(DistracaoService distracaoService, EmocoesService emocoesService) {
+    public RelatoriosController(DistracaoService distracaoService, EmocoesService emocoesService, MediaFomeService mediaFomeService, MediaSaciedadeService mediaSaciedadeService) {
         this.distracaoService = distracaoService;
         this.emocoesService = emocoesService;
+        this.mediaFomeService = mediaFomeService;
+        this.mediaSaciedadeService = mediaSaciedadeService;
     }
 
     @GetMapping("distracoes/ultimos7dias/{idUsuario}")
@@ -77,6 +77,34 @@ public class RelatoriosController {
     public List<RelatorioEmocoesDto> emocoesDepoisMes(@PathVariable Long idUsuario){
         RelatorioEmocoesDto ultimos30dias = emocoesService.contarEmocoesDepoisUltimos30dias(idUsuario);
         return Arrays.asList(ultimos30dias);
+    }
+
+    //======================== RELATORIO FOME ===================================
+
+    private final MediaFomeService mediaFomeService;
+
+    // 🔹 Média fome dos últimos 7 dias
+    @GetMapping("/media-fome/ultimos7dias")
+    public Double mediaFome7dias(@RequestParam Integer idUsuario) {
+        return mediaFomeService.mediaFomeUltimos7Dias(idUsuario);
+    }
+
+    @GetMapping("/media-fome/ultimos30dias")
+    public Double mediaFome30dias(@RequestParam Integer idUsuario) {
+        return mediaFomeService.mediaFomeUltimos30Dias(idUsuario);
+    }
+
+    //======================== RELATORIO SACIEDADE ===================================
+    private final MediaSaciedadeService mediaSaciedadeService;
+
+    @GetMapping("/media-saciedade/ultimos7dias")
+    public Double mediaSaciedade7dias(@RequestParam Integer idUsuario) {
+        return mediaSaciedadeService.mediaSaciedadeUltimos7Dias(idUsuario);
+    }
+
+    @GetMapping("/media-saciedade/ultimos30dias")
+    public Double mediaSaciedade30dias(@RequestParam Integer idUsuario) {
+        return mediaSaciedadeService.mediaSaciedadeUltimos30Dias(idUsuario);
     }
 
 }
