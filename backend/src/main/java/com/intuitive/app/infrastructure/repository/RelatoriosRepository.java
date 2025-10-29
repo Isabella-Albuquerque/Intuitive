@@ -107,7 +107,7 @@ public interface RelatoriosRepository extends JpaRepository<Refeicao, Integer> {
                                  @Param("inicio") LocalDate inicio,
                                  @Param("fim") LocalDate fim);
 
-    //===================== MÉDIA DE FOME =============================
+    //===================== MÉDIA DE SACIEDADE =============================
     @Query("""
        SELECT AVG(mediaDia)
        FROM (
