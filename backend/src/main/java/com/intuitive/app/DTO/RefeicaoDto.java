@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.sql.Time;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -14,7 +14,7 @@ import java.util.Date;
 public class RefeicaoDto {
     private Integer idRefeicao;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "America/Sao_Paulo")
-    private Date data;
+    private LocalDate data;
     private Time horario;
     private String tipo;
     private String descricao;

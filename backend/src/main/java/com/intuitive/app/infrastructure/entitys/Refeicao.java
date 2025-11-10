@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 
-import java.util.Date;
 import java.sql.Time;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -29,7 +29,7 @@ public class Refeicao {
     @Column(name = "data")
     @Temporal(TemporalType.DATE)
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "America/Sao_Paulo")
-    private Date data;
+    private LocalDate data;
 
     @Column(name = "horario")
     private Time horario;
