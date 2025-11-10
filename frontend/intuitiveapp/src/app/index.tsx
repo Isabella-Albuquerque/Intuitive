@@ -69,7 +69,6 @@ export default function Login() {
         const resultado = await login({ email, senha: password })
 
         if (resultado.success) {
-            showAlert('Sucesso', 'Login realizado com sucesso!')
             router.navigate("/tabs/home")
         } else {
             showAlert('Erro de login', resultado.error as string)
