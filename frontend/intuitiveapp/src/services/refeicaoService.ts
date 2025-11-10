@@ -59,7 +59,7 @@ export const refeicaoService = {
   async getHistoricoMensal(usuarioId: number, mes: number, ano: number): Promise<Refeicao[]> {
     try {
       const response = await api.get('/refeicao/historico', {
-        params: { idUsuario: usuarioId, mes, ano }
+        params: { usuarioId, mes, ano }
       })
       return response.data
     } catch (error: any) {
@@ -68,6 +68,13 @@ export const refeicaoService = {
       }
       throw new Error(error.message || 'Erro ao carregar histórico')
     }
+  },
+
+  async getMesesDisponiveis(usuarioId: number, ano: number) {
+    const response = await api.get('/refeicao/meses-disponiveis', {
+      params: { usuarioId, ano }
+    })
+    return response.data
   },
 
   async atualizar(id: number, refeicao: Refeicao): Promise<Refeicao> {
