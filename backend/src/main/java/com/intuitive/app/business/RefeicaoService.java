@@ -27,7 +27,6 @@ public class RefeicaoService {
 
         Refeicao refeicao = toEntity(dto, usuario);
         Refeicao salvo = repository.save(refeicao);
-
         return toDTO(salvo);
     }
 
@@ -71,6 +70,12 @@ public class RefeicaoService {
         return lista.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    // ===================== Meses Disponíveis =====================
+    public List<Integer> listarMesesDisponiveis(Integer usuarioId, int ano) {
+        List<Integer> meses = repository.findMesesDisponiveisPorUsuarioEAno(usuarioId, ano);
+        return meses;
     }
 
     // ===================== Delete =====================
