@@ -2,6 +2,8 @@ import api from './api'
 
 export interface DashboardData {
   mediaRefeicoesDiarias: number
+  mediaFome: number
+  mediaSaciedade: number
   distracao: {
     dados: Array<{
       value: number
@@ -25,8 +27,10 @@ export interface DashboardData {
 export const dashboardService = {
   async getDados7Dias(usuarioId: number): Promise<DashboardData> {
     try {
-      const [media, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
+      const [media, mediaFome, mediaSaciedade, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
         this.getMedia7Dias(usuarioId),
+        this.getMediaFome7Dias(usuarioId),
+        this.getMediaSaciedade7Dias(usuarioId),
         this.getDistracao7Dias(usuarioId),
         this.getEmocoesAntes7Dias(usuarioId),
         this.getEmocoesDepois7Dias(usuarioId)
@@ -34,6 +38,8 @@ export const dashboardService = {
 
       return {
         mediaRefeicoesDiarias: media,
+        mediaFome,
+        mediaSaciedade,
         distracao: {
           dados: this.formatarDistracao(distracao[0]),
           mensagem: distracao[0].mensagem
@@ -48,8 +54,10 @@ export const dashboardService = {
 
   async getDadosMensais(usuarioId: number): Promise<DashboardData> {
     try {
-      const [media, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
+      const [media, mediaFome, mediaSaciedade, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
         this.getMedia30Dias(usuarioId),
+        this.getMediaFome30Dias(usuarioId),
+        this.getMediaSaciedade30Dias(usuarioId),
         this.getDistracao30Dias(usuarioId),
         this.getEmocoesAntes30Dias(usuarioId),
         this.getEmocoesDepois30Dias(usuarioId)
@@ -57,6 +65,8 @@ export const dashboardService = {
 
       return {
         mediaRefeicoesDiarias: media,
+        mediaFome,
+        mediaSaciedade,
         distracao: {
           dados: this.formatarDistracao(distracao[0]),
           mensagem: distracao[0].mensagem
@@ -78,6 +88,34 @@ export const dashboardService = {
 
   async getMedia30Dias(usuarioId: number): Promise<number> {
     const response = await api.get('/relatorios/mediarefeicoes/ultimos30dias', {
+      params: { idUsuario: usuarioId }
+    })
+    return response.data || 0
+  },
+
+  async getMediaFome7Dias(usuarioId: number): Promise<number> {
+    const response = await api.get('/relatorios/media-fome/ultimos7dias', {
+      params: { idUsuario: usuarioId }
+    })
+    return response.data || 0
+  },
+
+  async getMediaFome30Dias(usuarioId: number): Promise<number> {
+    const response = await api.get('/relatorios/media-fome/ultimos30dias', {
+      params: { idUsuario: usuarioId }
+    })
+    return response.data || 0
+  },
+
+  async getMediaSaciedade7Dias(usuarioId: number): Promise<number> {
+    const response = await api.get('/relatorios/media-saciedade/ultimos7dias', {
+      params: { idUsuario: usuarioId }
+    })
+    return response.data || 0
+  },
+
+  async getMediaSaciedade30Dias(usuarioId: number): Promise<number> {
+    const response = await api.get('/relatorios/media-saciedade/ultimos30dias', {
       params: { idUsuario: usuarioId }
     })
     return response.data || 0
@@ -119,30 +157,20 @@ export const dashboardService = {
       {
         value: total > 0 ? Math.round((distracao.countSim / total) * 100) : 50,
         label: 'Sim',
-        color: '#FF6B6B'
+        color: '#E57373'
       },
       {
         value: total > 0 ? Math.round((distracao.countNao / total) * 100) : 50,
         label: 'Não',
-        color: '#4ECDC4'
+        color: '#3A7291'
       }
     ]
   },
 
   formatarEmocoes(emocoes: any) {
-    const cores = {
-      countFeliz: '#FFD93D',
-      countTriste: '#1f72e5ff',
-      countCalmo: '#6BCF7F',
-      countAnsioso: '#FF6B6B',
-      countEstressado: '#a96dc1ff',
-      countNeutro: '#95A5A6',
-      countCulpado: '#E74C3C',
-      countFrustrado: '#8131a3ff',
-      countCansado: '#34495E',
-      countRelaxado: '#4badefff',
-      countEntediado: '#7F8C8D'
-    }
+    const paleta = [
+      '#2E6480', '#3A7291', '#4A83A2', '#5D94B3', '#73A6C4', '#8BB8D5', '#A5CAE6', '#C0DCF7', '#D6E8FF', '#E7F2FF', '#F5FAFF',
+    ]
 
     const emojis = {
       countFeliz: '😊',
@@ -155,16 +183,20 @@ export const dashboardService = {
       countFrustrado: '😤',
       countCansado: '😴',
       countRelaxado: '😎',
-      countEntediado: '🥱'
+      countEntediado: '🥱',
     }
 
-    return Object.entries<number>(emocoes)
-      .filter(([key, value]) => key.startsWith('count') && value > 0)
-      .map(([key, value]) => ({
-        value: value as number,
+    const emocoesPresentes = Object.entries<number>(emocoes)
+      .filter(([_, value]) => value > 0)
+      .sort((a, b) => b[1] - a[1])
+
+    return emocoesPresentes.map(([key, value], index) => {
+      const paletaIndex = Math.floor((index / (emocoesPresentes.length - 1 || 1)) * (paleta.length - 1))
+      return {
+        value,
         label: emojis[key as keyof typeof emojis] || '😐',
-        color: cores[key as keyof typeof cores] || '#95A5A6'
-      }))
-      .sort((a, b) => b.value - a.value)
+        color: paleta[paletaIndex]
+      }
+    })
   }
 }

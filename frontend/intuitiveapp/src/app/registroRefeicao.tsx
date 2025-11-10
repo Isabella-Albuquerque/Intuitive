@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -11,13 +11,7 @@ import { CustomAlert } from '../components/customAlert'
 import { CustomConfirm } from '../components/customConfirm'
 import { useAlert } from '../hooks/useAlert'
 import { ScreenContainer } from '../components/screenContainer'
-
-interface DropdownEmocoesProps {
-    visible: boolean
-    onClose: () => void
-    onSelect: (value: string) => void
-    valorAtual: string
-}
+import { CustomDropdown } from '../components/customDropdown'
 
 interface OpcaoEmocao {
     label: string
@@ -41,9 +35,6 @@ export default function RegistroRefeicao() {
     const [distracoes, setDistracoes] = useState('')
     const [emocoesAntes, setEmocoesAntes] = useState('')
     const [emocoesDepois, setEmocoesDepois] = useState('')
-
-    const [showEmocoesAntesDropdown, setShowEmocoesAntesDropdown] = useState(false)
-    const [showEmocoesDepoisDropdown, setShowEmocoesDepoisDropdown] = useState(false)
 
     const [showDatePicker, setShowDatePicker] = useState(false)
     const [showTimePicker, setShowTimePicker] = useState(false)
@@ -79,7 +70,7 @@ export default function RegistroRefeicao() {
             setCarregando(true)
 
             const novaRefeicao: Omit<Refeicao, 'idRefeicao'> = {
-                data: data.toISOString().split('T')[0],
+                data: data.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }),
                 horario: horario.toTimeString().split(' ')[0],
                 tipo: tipo,
                 descricao: descricao,
@@ -93,51 +84,15 @@ export default function RegistroRefeicao() {
             }
 
             await refeicaoService.cadastrar(novaRefeicao)
-
             showAlert('Sucesso', 'Refeição registrada!', () => {
                 router.back()
             })
-
         } catch (error: any) {
             showAlert('Erro', error.message || 'Erro ao registrar refeição')
         } finally {
             setCarregando(false)
         }
     }
-
-    const DropdownEmocoes = ({ visible, onClose, onSelect, valorAtual }: DropdownEmocoesProps) => (
-        <Modal
-            visible={visible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={onClose}
-        >
-            <TouchableOpacity
-                style={styles.dropdownOverlay}
-                onPress={onClose}
-            >
-                <View style={styles.dropdownContainer}>
-                    {opcoesEmocoes.map((opcao) => (
-                        <TouchableOpacity
-                            key={opcao.value}
-                            style={[
-                                styles.dropdownItem,
-                                valorAtual === opcao.value && styles.dropdownItemSelected
-                            ]}
-                            onPress={() => {
-                                onSelect(opcao.value)
-                                onClose()
-                            }}
-                        >
-                            <Text style={styles.dropdownItemText}>
-                                {opcao.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </TouchableOpacity>
-        </Modal>
-    )
 
     return (
         <ScreenContainer>
@@ -245,14 +200,17 @@ export default function RegistroRefeicao() {
             {/* níveis de fome/saciedade */}
             <Text style={styles.label}>Nível de fome antes*</Text>
             <View style={styles.nivelContainer}>
-                {[1, 2, 3, 4, 5].map((nivel) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((nivel) => (
                     <TouchableOpacity
                         key={nivel}
                         style={[
                             styles.nivelButton,
                             nivelFome === nivel && styles.nivelButtonSelected
                         ]}
-                        onPress={() => setNivelFome(nivel)}
+                        onPress={() => {
+                            Keyboard.dismiss()
+                            setNivelFome(nivel)
+                        }}
                     >
                         <Text style={[
                             styles.nivelText,
@@ -266,7 +224,7 @@ export default function RegistroRefeicao() {
 
             <Text style={styles.label}>Nível de saciedade após*</Text>
             <View style={styles.nivelContainer}>
-                {[1, 2, 3, 4, 5].map((nivel) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((nivel) => (
                     <TouchableOpacity
                         key={nivel}
                         style={[
@@ -290,44 +248,26 @@ export default function RegistroRefeicao() {
             <View style={styles.emocoesRow}>
                 <View style={styles.emocoesColumn}>
                     <Text style={styles.emocoesLabel}>Antes</Text>
-                    <TouchableOpacity
-                        style={styles.dropdownButtonCompact}
-                        onPress={() => setShowEmocoesAntesDropdown(true)}
-                    >
-                        <Text style={emocoesAntes ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                            {emocoesAntes ? opcoesEmocoes.find(e => e.value === emocoesAntes)?.label : 'Selecionar'}
-                        </Text>
-                        <Ionicons name="chevron-down" size={16} color="#666" />
-                    </TouchableOpacity>
+                    <CustomDropdown
+                        options={opcoesEmocoes}
+                        selectedValue={emocoesAntes}
+                        onValueChange={setEmocoesAntes}
+                        placeholder="Selecionar"
+                        style={styles.emocaoDropdown}
+                    />
                 </View>
 
                 <View style={styles.emocoesColumn}>
                     <Text style={styles.emocoesLabel}>Depois</Text>
-                    <TouchableOpacity
-                        style={styles.dropdownButtonCompact}
-                        onPress={() => setShowEmocoesDepoisDropdown(true)}
-                    >
-                        <Text style={emocoesDepois ? styles.dropdownButtonTextSelected : styles.dropdownButtonText}>
-                            {emocoesDepois ? opcoesEmocoes.find(e => e.value === emocoesDepois)?.label : 'Selecionar'}
-                        </Text>
-                        <Ionicons name="chevron-down" size={16} color="#666" />
-                    </TouchableOpacity>
+                    <CustomDropdown
+                        options={opcoesEmocoes}
+                        selectedValue={emocoesDepois}
+                        onValueChange={setEmocoesDepois}
+                        placeholder="Selecionar"
+                        style={styles.emocaoDropdown}
+                    />
                 </View>
             </View>
-
-            <DropdownEmocoes
-                visible={showEmocoesAntesDropdown}
-                onClose={() => setShowEmocoesAntesDropdown(false)}
-                onSelect={setEmocoesAntes}
-                valorAtual={emocoesAntes}
-            />
-
-            <DropdownEmocoes
-                visible={showEmocoesDepoisDropdown}
-                onClose={() => setShowEmocoesDepoisDropdown(false)}
-                onSelect={setEmocoesDepois}
-                valorAtual={emocoesDepois}
-            />
 
             {/* companhia */}
             <Text style={styles.label}>Companhia</Text>
@@ -490,18 +430,19 @@ const styles = StyleSheet.create({
     inputContainer: {
         marginBottom: 10
     },
-
     nivelContainer: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         marginBottom: 10
     },
     nivelButton: {
-        width: 50,
+        width: '18%',
         height: 50,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#ddd',
+        marginVertical: 4,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#2e6480'
@@ -514,16 +455,18 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: 'bold',
         fontSize: 16,
+        textAlign: 'center',
+        includeFontPadding: false
     },
     nivelTextSelected: {
         color: '#2e6480',
         fontWeight: '500',
-        fontFamily: 'Poppins-Bold',
+        fontFamily: 'Poppins-Bold'
     },
     emocoesRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: 10
     },
     emocoesColumn: {
         width: '48%'
@@ -534,65 +477,8 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         fontFamily: 'Poppins-Medium'
     },
-    dropdownButtonCompact: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
-        backgroundColor: '#fff',
-        minHeight: 44
-    },
-    dropdownButton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 16,
-        backgroundColor: '#fff',
-        marginBottom: 10
-    },
-    dropdownButtonText: {
-        color: '#666',
-        fontSize: 16,
-        fontFamily: 'Poppins-Regular',
-    },
-    dropdownButtonTextSelected: {
-        color: '#333',
-        fontSize: 16,
-        fontFamily: 'Poppins-Regular',
-    },
-    dropdownOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    dropdownContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        width: 'auto',
-        minWidth: 180,
-        maxWidth: 220,
-        alignSelf: 'center',
-    },
-    dropdownItem: {
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0'
-    },
-    dropdownItemSelected: {
-        backgroundColor: '#e8f4fd'
-    },
-    dropdownItemText: {
-        fontSize: 16,
-        fontFamily: 'Poppins-Regular'
+    emocaoDropdown: {
+        width: '100%'
     },
     opcaoContainer: {
         flexDirection: 'row',

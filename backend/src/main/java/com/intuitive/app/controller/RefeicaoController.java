@@ -43,11 +43,20 @@ public class RefeicaoController {
     // Consultar histórico por usuário e mês
     @GetMapping("/historico")
     public ResponseEntity<List<RefeicaoDto>> historicoPorMes(
-            @RequestParam Integer idUsuario,
+            @RequestParam Integer usuarioId,
             @RequestParam Integer mes,
             @RequestParam Integer ano) {
-        List<RefeicaoDto> historico = refeicaoService.historicoPorMes(idUsuario, mes, ano);
+        List<RefeicaoDto> historico = refeicaoService.historicoPorMes(usuarioId, mes, ano);
         return ResponseEntity.ok(historico);
+    }
+
+    // Consultar meses disponíveis com registros de refeições
+    @GetMapping("/meses-disponiveis")
+    public ResponseEntity<List<Integer>> listarMesesDisponiveis(
+            @RequestParam Integer usuarioId,
+            @RequestParam int ano) {
+        List<Integer> meses = refeicaoService.listarMesesDisponiveis(usuarioId, ano);
+        return ResponseEntity.ok(meses);
     }
 
     // Excluir refeição por ID

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Keyboard } from 'react-native'
 import { router } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
@@ -114,15 +114,18 @@ export default function Register() {
                 {/* data de nascimento */}
                 <Text style={styles.sectionTitle}>Data de Nascimento</Text>
                 <TouchableOpacity
-                    onPress={() => setShowDatePicker(true)}
+                    onPress={() => {
+                        Keyboard.dismiss()
+                        setShowDatePicker(true)
+                    }}
                     disabled={carregando}
                 >
                     <Input
                         placeholder="Data de Nascimento"
-                        placeholderTextColor="#a08d80"
                         value={dataNascimento ? formatarData(dataNascimento) : ''}
                         editable={false}
                         pointerEvents="none"
+                        style={{ color: '#5c503a' }} 
                     />
                 </TouchableOpacity>
 
@@ -131,6 +134,7 @@ export default function Register() {
                         value={dataNascimento || new Date()}
                         mode="date"
                         display="spinner"
+                        themeVariant="light"
                         onChange={handleDateChange}
                         maximumDate={new Date()}
                     />
@@ -141,7 +145,10 @@ export default function Register() {
                 <View style={styles.sexoContainer}>
                     <TouchableOpacity
                         style={[styles.sexoButton, sexo === 'M' && styles.sexoButtonSelected]}
-                        onPress={() => setSexo('M')}
+                        onPress={() => {
+                            Keyboard.dismiss()
+                            setSexo('M')
+                        }}
                         disabled={carregando}
                     >
                         <Text style={[styles.sexoText, sexo === 'M' && styles.sexoTextSelected]}>
@@ -150,7 +157,10 @@ export default function Register() {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.sexoButton, sexo === 'F' && styles.sexoButtonSelected]}
-                        onPress={() => setSexo('F')}
+                        onPress={() => {
+                            Keyboard.dismiss()
+                            setSexo('F')
+                        }}
                         disabled={carregando}
                     >
                         <Text style={[styles.sexoText, sexo === 'F' && styles.sexoTextSelected]}>
@@ -324,7 +334,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#e8f4fd'
     },
     sexoText: {
-        color: '#666',
+        color: '#5c503a',
         fontWeight: '500',
         fontFamily: 'Poppins-Regular'
     },
