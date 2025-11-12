@@ -21,7 +21,7 @@ function validarArrayGraficoPizza(arr: any): arr is { value: number; label?: str
     return total > 0
 }
 
-type Periodo = '7dias' | 'mes'
+type Periodo = '7dias' | '30dias'
 
 export default function Dashboard() {
     const { usuario } = useAuth()
@@ -98,7 +98,7 @@ export default function Dashboard() {
 
     const trocarPeriodo = (novoPeriodo: Periodo) => {
         const agora = Date.now()
-        if (agora - ultimaTrocaRef.current < 800) return 
+        if (agora - ultimaTrocaRef.current < 800) return
         ultimaTrocaRef.current = agora
         setPeriodoSelecionado(novoPeriodo)
     }
@@ -125,31 +125,18 @@ export default function Dashboard() {
 
     const getNomeEmocao = (emoji: string) => nomeEmocoes[emoji] || ''
 
-    if (carregando) {
-        return (
-            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                    <ActivityIndicator size="large" color="#2e6480" />
-                    <Text style={{ marginTop: 16, color: '#666' }}>Carregando dashboard...</Text>
-                </View>
-            </SafeAreaView>
-        )
-    }
-
     return (
         <SafeAreaView style={styles.safeArea} edges={['top']}>
             <ScrollView style={styles.container}>
-                {/* nav período */}
+                {/* nav período*/}
                 <View style={styles.navegacaoContainer}>
                     <TouchableOpacity
                         style={[
                             styles.botaoPeriodo,
                             periodoSelecionado === '7dias' && styles.botaoPeriodoSelecionado
                         ]}
-                        onPress={() => {
-                            setPeriodoSelecionado('7dias')
-                        }}
-
+                        onPress={() => trocarPeriodo('7dias')}
+                        disabled={carregando}
                     >
                         <Text style={[
                             styles.botaoPeriodoTexto,
@@ -162,205 +149,212 @@ export default function Dashboard() {
                     <TouchableOpacity
                         style={[
                             styles.botaoPeriodo,
-                            periodoSelecionado === 'mes' && styles.botaoPeriodoSelecionado
+                            periodoSelecionado === '30dias' && styles.botaoPeriodoSelecionado
                         ]}
-                        onPress={() => {
-                            setPeriodoSelecionado('mes')
-                        }}
-
+                        onPress={() => trocarPeriodo('30dias')}
+                        disabled={carregando}
                     >
                         <Text style={[
                             styles.botaoPeriodoTexto,
-                            periodoSelecionado === 'mes' && styles.botaoPeriodoTextoSelecionado
+                            periodoSelecionado === '30dias' && styles.botaoPeriodoTextoSelecionado
                         ]}>
-                            Mês
+                            Últimos 30 dias
                         </Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* média refeições diarias */}
-                <View style={styles.card}>
-                    <Text style={styles.fraseMediaTexto}>Você faz em média</Text>
-                    <Text
-                        style={[
-                            styles.fraseMediaValor,
-                            (dados?.mediaRefeicoesDiarias === 0 || dados?.mediaRefeicoesDiarias === null) && { color: '#999' }
-                        ]}
-                    >
-                        {dados?.mediaRefeicoesDiarias.toFixed(1)}
-                    </Text>
-                    <Text style={styles.fraseMediaTexto}>
-                        refeiç{Number(dados?.mediaRefeicoesDiarias.toFixed(1)) === 1 ? 'ão' : 'ões'} por dia
-                    </Text>
-                </View>
+                {carregando ? (
+                    <View style={styles.carregandoContainer}>
+                        <ActivityIndicator size="large" color="#2e6480" />
+                        <Text style={styles.carregandoTexto}>Carregando dashboard...</Text>
+                    </View>
+                ) : (
+                    <>
+                        {/* média refeições diarias */}
+                        <View style={styles.card}>
+                            <Text style={styles.fraseMediaTexto}>Você faz em média</Text>
+                            <Text
+                                style={[
+                                    styles.fraseMediaValor,
+                                    (dados?.mediaRefeicoesDiarias === 0 || dados?.mediaRefeicoesDiarias === null) && { color: '#999' }
+                                ]}
+                            >
+                                {dados?.mediaRefeicoesDiarias.toFixed(1)}
+                            </Text>
+                            <Text style={styles.fraseMediaTexto}>
+                                refeiç{Number(dados?.mediaRefeicoesDiarias.toFixed(1)) === 1 ? 'ão' : 'ões'} por dia
+                            </Text>
+                        </View>
 
 
-                {/* média de fome */}
-                <View style={styles.card}>
-                    <Scale
-                        value={dados?.mediaFome ?? 0}
-                        label="Média de fome antes das refeições"
-                        labelStyle={styles.cardTitulo}
-                        valueStyle={styles.mediaTexto}
-                    />
-
-                </View>
-
-                {/* média de saciedade */}
-                <View style={styles.card}>
-                    <Scale
-                        value={dados?.mediaSaciedade ?? 0}
-                        label="Média de saciedade depois das refeições"
-                        labelStyle={styles.cardTitulo}
-                        valueStyle={styles.mediaTexto}
-                    />
-                </View>
-
-                {/* % distração */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitulo}>Distrações durante as refeições</Text>
-                    <View style={styles.graficoContainer}>
-                        {validarArrayGraficoPizza(dados?.distracao?.dados) ? (
-                            <PieChart
-                                data={dados?.distracao?.dados?.map(item => ({
-                                    ...item,
-                                    value: Number(item.value),
-                                    text: item.label,
-                                    textSize: 15,
-                                })) ?? []
-                                }
-                                donut
-                                radius={100}
-                                showText
-                                textColor="#000000"
-                                textSize={15}
-                                showValuesAsLabels
-                                centerLabelComponent={() => {
-                                    const arr = dados?.distracao?.dados ?? []
-                                    const total = arr.reduce((s, it) => s + Number(it.value), 0)
-                                    const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
-                                    const percentual = Math.round((Number(maior.value) / total) * 100)
-                                    return (
-                                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#2e6480' }}>
-                                                {maior.label}
-                                            </Text>
-                                            <Text style={{ fontSize: 14, color: '#444' }}>{percentual}%</Text>
-                                        </View>
-                                    )
-                                }}
+                        {/* média de fome */}
+                        <View style={styles.card}>
+                            <Scale
+                                value={dados?.mediaFome ?? 0}
+                                label="Média de fome antes das refeições"
+                                labelStyle={styles.cardTitulo}
+                                valueStyle={styles.mediaTexto}
                             />
-                        ) : (
-                            <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
-                                <Text style={{ color: '#999' }}>{dados?.distracao?.mensagem || 'Sem dados'}</Text>
-                            </View>
-                        )}
-                    </View>
-                    <Text style={styles.cardSubtitulo}>
-                        {dados?.distracao?.mensagem}
-                    </Text>
-                </View>
 
-                {/* % emoção antes */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitulo}>Suas emoções antes das refeições</Text>
-                    <View style={styles.graficoContainer}>
-                        {validarArrayGraficoPizza(dados?.emocoesAntes) ? (
-                            <PieChart
-                                data={(dados?.emocoesAntes ?? []).map(emocao => ({
-                                    value: Number(emocao.value),
-                                    color: emocao.color,
-                                    text: emocao.label,
-                                    textSize: 18,
-                                }))}
-                                donut
-                                showText
-                                textColor="#000000"
-                                radius={100}
-                                centerLabelComponent={() => {
-                                    const arr = dados?.emocoesAntes ?? []
-                                    const total = arr.reduce((s, it) => s + Number(it.value), 0)
-                                    const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
-                                    const percentual = Math.round((Number(maior.value) / total) * 100)
-                                    return (
-                                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                                            <Text style={{ fontSize: 20, fontWeight: '700', color: '#2e6480' }}>
-                                                {maior.label}
-                                            </Text>
-                                            <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>
-                                                {percentual}%
-                                            </Text>
-                                        </View>
-                                    )
-                                }}
+                        </View>
+
+                        {/* média de saciedade */}
+                        <View style={styles.card}>
+                            <Scale
+                                value={dados?.mediaSaciedade ?? 0}
+                                label="Média de saciedade depois das refeições"
+                                labelStyle={styles.cardTitulo}
+                                valueStyle={styles.mediaTexto}
                             />
-                        ) : (
-                            <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
-                                <Text style={{ color: '#999' }}>Sem dados</Text>
-                            </View>
-                        )}
-                    </View>
-                    {/* legenda */}
-                    <View style={styles.legendaContainer}>
-                        {dados?.emocoesAntes.map(emocao => (
-                            <View key={emocao.label} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 }}>
-                                <Text style={{ fontSize: 18 }}>{emocao.label}</Text>
-                                <Text style={{ marginLeft: 4, color: '#333' }}>{getNomeEmocao(emocao.label)}</Text>
-                            </View>
-                        ))}
-                    </View>
+                        </View>
 
-                </View>
+                        {/* % distração */}
+                        <View style={styles.card}>
+                            <Text style={styles.cardTitulo}>Distrações durante as refeições</Text>
+                            <View style={styles.graficoContainer}>
+                                {validarArrayGraficoPizza(dados?.distracao?.dados) ? (
+                                    <PieChart
+                                        data={dados?.distracao?.dados?.map(item => ({
+                                            ...item,
+                                            value: Number(item.value),
+                                            text: item.label,
+                                            textSize: 15,
+                                        })) ?? []
+                                        }
+                                        donut
+                                        radius={100}
+                                        showText
+                                        textColor="#000000"
+                                        textSize={15}
+                                        showValuesAsLabels
+                                        centerLabelComponent={() => {
+                                            const arr = dados?.distracao?.dados ?? []
+                                            const total = arr.reduce((s, it) => s + Number(it.value), 0)
+                                            const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
+                                            const percentual = Math.round((Number(maior.value) / total) * 100)
+                                            return (
+                                                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 18, fontWeight: '700', color: '#2e6480' }}>
+                                                        {maior.label}
+                                                    </Text>
+                                                    <Text style={{ fontSize: 14, color: '#444' }}>{percentual}%</Text>
+                                                </View>
+                                            )
+                                        }}
+                                    />
+                                ) : (
+                                    <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
+                                        <Text style={{ color: '#999' }}>{dados?.distracao?.mensagem || 'Sem dados'}</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <Text style={styles.cardSubtitulo}>
+                                {dados?.distracao?.mensagem}
+                            </Text>
+                        </View>
 
-                {/* % emoção depois */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitulo}>Suas emoções após as refeições</Text>
-                    <View style={styles.graficoContainer}>
-                        {validarArrayGraficoPizza(dados?.emocoesDepois) ? (
-                            <PieChart
-                                data={(dados?.emocoesDepois ?? []).map(emocao => ({
-                                    value: Number(emocao.value),
-                                    color: emocao.color,
-                                    text: emocao.label,
-                                    textSize: 18,
-                                }))}
-                                donut
-                                showText
-                                textColor="#000000"
-                                radius={100}
-                                centerLabelComponent={() => {
-                                    const arr = dados?.emocoesDepois ?? []
-                                    const total = arr.reduce((s, it) => s + Number(it.value), 0)
-                                    const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
-                                    const percentual = Math.round((Number(maior.value) / total) * 100)
-                                    return (
-                                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                                            <Text style={{ fontSize: 20, fontWeight: '700', color: '#2e6480' }}>
-                                                {maior.label}
-                                            </Text>
-                                            <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>
-                                                {percentual}%
-                                            </Text>
-                                        </View>
-                                    )
-                                }}
-                            />
-                        ) : (
-                            <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
-                                <Text style={{ color: '#999' }}>Sem dados</Text>
+                        {/* % emoção antes */}
+                        <View style={styles.card}>
+                            <Text style={styles.cardTitulo}>Suas emoções antes das refeições</Text>
+                            <View style={styles.graficoContainer}>
+                                {validarArrayGraficoPizza(dados?.emocoesAntes) ? (
+                                    <PieChart
+                                        data={(dados?.emocoesAntes ?? []).map(emocao => ({
+                                            value: Number(emocao.value),
+                                            color: emocao.color,
+                                            text: emocao.label,
+                                            textSize: 18,
+                                        }))}
+                                        donut
+                                        showText
+                                        textColor="#000000"
+                                        radius={100}
+                                        centerLabelComponent={() => {
+                                            const arr = dados?.emocoesAntes ?? []
+                                            const total = arr.reduce((s, it) => s + Number(it.value), 0)
+                                            const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
+                                            const percentual = Math.round((Number(maior.value) / total) * 100)
+                                            return (
+                                                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 20, fontWeight: '700', color: '#2e6480' }}>
+                                                        {maior.label}
+                                                    </Text>
+                                                    <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>
+                                                        {percentual}%
+                                                    </Text>
+                                                </View>
+                                            )
+                                        }}
+                                    />
+                                ) : (
+                                    <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
+                                        <Text style={{ color: '#999' }}>Sem dados</Text>
+                                    </View>
+                                )}
                             </View>
-                        )}
-                    </View>
-                    {/* legenda */}
-                    <View style={styles.legendaContainer}>
-                        {dados?.emocoesDepois.map(emocao => (
-                            <View key={emocao.label} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 }}>
-                                <Text style={{ fontSize: 18 }}>{emocao.label}</Text>
-                                <Text style={{ marginLeft: 4, color: '#333' }}>{getNomeEmocao(emocao.label)}</Text>
+                            {/* legenda */}
+                            <View style={styles.legendaContainer}>
+                                {dados?.emocoesAntes.map(emocao => (
+                                    <View key={emocao.label} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 }}>
+                                        <Text style={{ fontSize: 18 }}>{emocao.label}</Text>
+                                        <Text style={{ marginLeft: 4, color: '#333' }}>{getNomeEmocao(emocao.label)}</Text>
+                                    </View>
+                                ))}
                             </View>
-                        ))}
-                    </View>
-                </View>
+
+                        </View>
+
+                        {/* % emoção depois */}
+                        <View style={styles.card}>
+                            <Text style={styles.cardTitulo}>Suas emoções após as refeições</Text>
+                            <View style={styles.graficoContainer}>
+                                {validarArrayGraficoPizza(dados?.emocoesDepois) ? (
+                                    <PieChart
+                                        data={(dados?.emocoesDepois ?? []).map(emocao => ({
+                                            value: Number(emocao.value),
+                                            color: emocao.color,
+                                            text: emocao.label,
+                                            textSize: 18,
+                                        }))}
+                                        donut
+                                        showText
+                                        textColor="#000000"
+                                        radius={100}
+                                        centerLabelComponent={() => {
+                                            const arr = dados?.emocoesDepois ?? []
+                                            const total = arr.reduce((s, it) => s + Number(it.value), 0)
+                                            const maior = arr.reduce((prev, cur) => (Number(cur.value) > Number(prev.value) ? cur : prev))
+                                            const percentual = Math.round((Number(maior.value) / total) * 100)
+                                            return (
+                                                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 20, fontWeight: '700', color: '#2e6480' }}>
+                                                        {maior.label}
+                                                    </Text>
+                                                    <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>
+                                                        {percentual}%
+                                                    </Text>
+                                                </View>
+                                            )
+                                        }}
+                                    />
+                                ) : (
+                                    <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
+                                        <Text style={{ color: '#999' }}>Sem dados</Text>
+                                    </View>
+                                )}
+                            </View>
+                            {/* legenda */}
+                            <View style={styles.legendaContainer}>
+                                {dados?.emocoesDepois.map(emocao => (
+                                    <View key={emocao.label} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 }}>
+                                        <Text style={{ fontSize: 18 }}>{emocao.label}</Text>
+                                        <Text style={{ marginLeft: 4, color: '#333' }}>{getNomeEmocao(emocao.label)}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    </>
+                )}
             </ScrollView>
         </SafeAreaView>
     )
@@ -403,6 +397,19 @@ const styles = StyleSheet.create({
     },
     botaoPeriodoTextoSelecionado: {
         color: '#ffffff'
+    },
+    carregandoContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 500,
+        paddingVertical: 40,
+    },
+    carregandoTexto: {
+        marginTop: 16,
+        color: '#666',
+        fontSize: 16,
+        textAlign: 'center',
     },
     card: {
         backgroundColor: '#ffffff',

@@ -26,56 +26,76 @@ export interface DashboardData {
 
 export const dashboardService = {
   async getDados7Dias(usuarioId: number): Promise<DashboardData> {
-    try {
-      const [media, mediaFome, mediaSaciedade, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
-        this.getMedia7Dias(usuarioId),
-        this.getMediaFome7Dias(usuarioId),
-        this.getMediaSaciedade7Dias(usuarioId),
-        this.getDistracao7Dias(usuarioId),
-        this.getEmocoesAntes7Dias(usuarioId),
-        this.getEmocoesDepois7Dias(usuarioId)
-      ])
-
-      return {
-        mediaRefeicoesDiarias: media,
-        mediaFome,
-        mediaSaciedade,
-        distracao: {
-          dados: this.formatarDistracao(distracao[0]),
-          mensagem: distracao[0].mensagem
-        },
-        emocoesAntes: this.formatarEmocoes(emocoesAntes[0]),
-        emocoesDepois: this.formatarEmocoes(emocoesDepois[0])
+    const segura = async <T>(fn: () => Promise<T>, fallback: T) => {
+      try {
+        return await fn()
+      } catch (err) {
+        console.warn('Falha em uma das requisições do dashboard:', err)
+        return fallback
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Erro ao carregar dados dos últimos 7 dias')
+    }
+
+    const [media, mediaFome, mediaSaciedade, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
+      segura(() => this.getMedia7Dias(usuarioId), 0),
+      segura(() => this.getMediaFome7Dias(usuarioId), 0),
+      segura(() => this.getMediaSaciedade7Dias(usuarioId), 0),
+      segura(() => this.getDistracao7Dias(usuarioId), [{ countSim: 0, countNao: 0, mensagem: 'Sem dados' }]),
+      segura(() => this.getEmocoesAntes7Dias(usuarioId), [{}]),
+      segura(() => this.getEmocoesDepois7Dias(usuarioId), [{}]),
+    ])
+
+    return {
+      mediaRefeicoesDiarias: media,
+      mediaFome,
+      mediaSaciedade,
+      distracao: {
+        dados: this.formatarDistracao(distracao[0]) ?? [],
+        mensagem: distracao[0].mensagem
+      },
+
+      emocoesAntes: this.formatarEmocoes(emocoesAntes[0]),
+      emocoesDepois: this.formatarEmocoes(emocoesDepois[0])
     }
   },
 
   async getDadosMensais(usuarioId: number): Promise<DashboardData> {
-    try {
-      const [media, mediaFome, mediaSaciedade, distracao, emocoesAntes, emocoesDepois] = await Promise.all([
-        this.getMedia30Dias(usuarioId),
-        this.getMediaFome30Dias(usuarioId),
-        this.getMediaSaciedade30Dias(usuarioId),
-        this.getDistracao30Dias(usuarioId),
-        this.getEmocoesAntes30Dias(usuarioId),
-        this.getEmocoesDepois30Dias(usuarioId)
-      ])
-
-      return {
-        mediaRefeicoesDiarias: media,
-        mediaFome,
-        mediaSaciedade,
-        distracao: {
-          dados: this.formatarDistracao(distracao[0]),
-          mensagem: distracao[0].mensagem
-        },
-        emocoesAntes: this.formatarEmocoes(emocoesAntes[0]),
-        emocoesDepois: this.formatarEmocoes(emocoesDepois[0])
+    const segura = async <T>(fn: () => Promise<T>, fallback: T) => {
+      try {
+        return await fn()
+      } catch {
+        return fallback
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Erro ao carregar dados mensais')
+    }
+
+    const [
+      media,
+      mediaFome,
+      mediaSaciedade,
+      distracao,
+      emocoesAntes,
+      emocoesDepois
+    ] = await Promise.all([
+      segura(() => this.getMedia30Dias(usuarioId), 0),
+      segura(() => this.getMediaFome30Dias(usuarioId), 0),
+      segura(() => this.getMediaSaciedade30Dias(usuarioId), 0),
+      segura(() => this.getDistracao30Dias(usuarioId), [
+        { countSim: null, countNao: null, mensagem: 'Sem dados' }
+      ]),
+      segura(() => this.getEmocoesAntes30Dias(usuarioId), [{}]),
+      segura(() => this.getEmocoesDepois30Dias(usuarioId), [{}])
+    ])
+
+    return {
+      mediaRefeicoesDiarias: media,
+      mediaFome,
+      mediaSaciedade,
+      distracao: {
+        dados: this.formatarDistracao(distracao[0]) ?? [],
+        mensagem: distracao[0].mensagem
+      },
+
+      emocoesAntes: this.formatarEmocoes(emocoesAntes[0]),
+      emocoesDepois: this.formatarEmocoes(emocoesDepois[0])
     }
   },
 
@@ -152,15 +172,23 @@ export const dashboardService = {
   },
 
   formatarDistracao(distracao: any) {
+    if (!distracao || distracao.countSim == null || distracao.countNao == null) {
+      return null
+    }
+
     const total = distracao.countSim + distracao.countNao
+    if (total === 0) {
+      return null
+    }
+
     return [
       {
-        value: total > 0 ? Math.round((distracao.countSim / total) * 100) : 50,
+        value: Math.round((distracao.countSim / total) * 100),
         label: 'Sim',
         color: '#E57373'
       },
       {
-        value: total > 0 ? Math.round((distracao.countNao / total) * 100) : 50,
+        value: Math.round((distracao.countNao / total) * 100),
         label: 'Não',
         color: '#3A7291'
       }
