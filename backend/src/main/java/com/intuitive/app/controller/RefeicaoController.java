@@ -50,15 +50,6 @@ public class RefeicaoController {
         return ResponseEntity.ok(historico);
     }
 
-    // Consultar meses disponíveis com registros de refeições
-    @GetMapping("/meses-disponiveis")
-    public ResponseEntity<List<Integer>> listarMesesDisponiveis(
-            @RequestParam Integer usuarioId,
-            @RequestParam int ano) {
-        List<Integer> meses = refeicaoService.listarMesesDisponiveis(usuarioId, ano);
-        return ResponseEntity.ok(meses);
-    }
-
     // Excluir refeição por ID
     @DeleteMapping("/{idRefeicao}")
     public ResponseEntity<Void> deletarRefeicao(@PathVariable Integer idRefeicao) {
