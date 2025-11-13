@@ -8,6 +8,8 @@ import com.intuitive.app.infrastructure.repository.RefeicaoRepository;
 import com.intuitive.app.infrastructure.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,16 +68,13 @@ public class RefeicaoService {
 
     // ===================== Histórico por mês =====================
     public List<RefeicaoDto> historicoPorMes(Integer usuarioId, int mes, int ano) {
-        List<Refeicao> lista = repository.findByUsuarioAndMes(usuarioId, mes, ano);
+        LocalDate hoje = LocalDate.now();
+        LocalDate trintaDiasAtras = hoje.minusDays(30);
+        
+        List<Refeicao> lista = repository.findByUsuarioAndMes(usuarioId, trintaDiasAtras);
         return lista.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    // ===================== Meses Disponíveis =====================
-    public List<Integer> listarMesesDisponiveis(Integer usuarioId, int ano) {
-        List<Integer> meses = repository.findMesesDisponiveisPorUsuarioEAno(usuarioId, ano);
-        return meses;
     }
 
     // ===================== Delete =====================

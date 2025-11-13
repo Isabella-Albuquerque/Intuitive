@@ -453,10 +453,11 @@ const styles = StyleSheet.create({
     },
     nivelText: {
         color: '#ffffff',
-        fontWeight: 'bold',
+        fontWeight: '500',
         fontSize: 16,
         textAlign: 'center',
-        includeFontPadding: false
+        includeFontPadding: false,
+        fontFamily: 'Poppins-Bold'
     },
     nivelTextSelected: {
         color: '#2e6480',

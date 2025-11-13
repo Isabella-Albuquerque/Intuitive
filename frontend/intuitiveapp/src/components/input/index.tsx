@@ -23,14 +23,13 @@ export function Input({ secureTextEntry, multilineHeight, style, ...rest }: Cust
   return (
     <View style={styles.inputContainer}>
       <TextInput
-        key={showPassword ? "visible" : "hidden"}
         style={inputStyle}
         secureTextEntry={secureTextEntry && !showPassword}
         placeholderTextColor="#a08d80"
         autoCorrect={false}
         autoCapitalize="none"
-        autoComplete={secureTextEntry ? "password" : "off"}
-        textContentType={secureTextEntry ? "password" : "none"}
+        cursorColor="#2e6480"
+        selectionColor="#2e6480"
         {...rest}
       />
       {secureTextEntry && (
@@ -39,7 +38,7 @@ export function Input({ secureTextEntry, multilineHeight, style, ...rest }: Cust
           style={styles.eyeButton}
         >
           <Ionicons
-            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            name={showPassword ? 'eye-outline' : 'eye-off-outline'}
             size={20}
             color="#666"
           />

@@ -6,20 +6,26 @@ export const styles = StyleSheet.create({
     width: '100%'
   },
   input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#DDD',
+    backgroundColor: '#fff',
     borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    paddingVertical: 12,
     fontSize: 16,
-    paddingRight: 45
+    color: '#000000', 
+    width: '100%',
+    textAlign: 'left',
+    includeFontPadding: true,
+    textAlignVertical: 'center',
+    fontFamily: 'System',
+    fontWeight: '400'
   },
   eyeButton: {
     position: 'absolute',
-    right: 16,
-    top: 15,
+    right: 12,
+    top: 12,
+    zIndex: 1,
     padding: 4
   }
 })
