@@ -10,59 +10,31 @@ import { useAuth } from '../hooks/useAuth'
 import { CustomAlert } from '../components/customAlert'
 import { useAlert } from '../hooks/useAlert'
 import { ScreenContainer } from '../components/screenContainer'
+import { termosUsoTexto } from '../constants/termosUso'
+import { politicaPrivacidadeTexto } from '../constants/politicaPrivacidade'
 
 export default function Register() {
     const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
+    const { register, carregando } = useAuth()
 
-    const [nome, setNome] = useState('')
-    const [email, setEmail] = useState('')
-    const [dataNascimento, setDataNascimento] = useState<Date | null>(new Date(2000, 0, 1))
-    const [senha, setSenha] = useState('')
-    const [confirmarSenha, setConfirmarSenha] = useState('')
-    const [sexo, setSexo] = useState('')
+    const [form, setForm] = useState({
+        nome: '',
+        email: '',
+        senha: '',
+        confirmarSenha: '',
+        sexo: '',
+        dataNascimento: new Date(2000, 0, 1),
+    })
+
     const [aceitouTermos, setAceitouTermos] = useState(false)
     const [showDatePicker, setShowDatePicker] = useState(false)
-    const { register, carregando } = useAuth()
     const [modalVisible, setModalVisible] = useState(false)
-    const [modalContent, setModalContent] = useState('')
     const [modalTitle, setModalTitle] = useState('')
-
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        setShowDatePicker(false)
-        if (selectedDate) {
-            setDataNascimento(selectedDate)
-        }
-    }
+    const [modalContent, setModalContent] = useState('')
 
     const formatarData = (date: Date | null) => {
         if (!date) return 'Data de Nascimento'
         return date.toLocaleDateString('pt-BR')
-    }
-
-    const handleRegister = async () => {
-        if (!aceitouTermos) {
-            showAlert('Erro', 'Você deve aceitar os Termos de Uso e Política de Privacidade')
-            return
-        }
-
-        if (senha !== confirmarSenha) {
-            showAlert('Erro', 'As senhas não coincidem')
-            return
-        }
-
-        const resultado = await register({
-            nome,
-            email,
-            senha,
-            sexo,
-            dtNascimento: dataNascimento ? dataNascimento.toISOString().split('T')[0] : ''
-        })
-
-        if (resultado.success) {
-            showAlert('Sucesso', 'Conta criada com sucesso!', () => router.back())
-        } else {
-            showAlert('Erro no cadastro', resultado.error as string)
-        }
     }
 
     const mostrarTermosUso = () => {
@@ -75,6 +47,40 @@ export default function Register() {
         setModalTitle('Política de Privacidade')
         setModalContent(politicaPrivacidadeTexto)
         setModalVisible(true)
+    }
+
+
+    const handleDateChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false)
+        if (selectedDate) {
+            setForm(prev => ({ ...prev, dataNascimento: selectedDate }))
+        }
+    }
+
+    const handleRegister = async () => {
+        if (!aceitouTermos) {
+            showAlert('Erro', 'Você deve aceitar os Termos de Uso e Política de Privacidade')
+            return
+        }
+
+        if (form.senha !== form.confirmarSenha) {
+            showAlert('Erro', 'As senhas não coincidem')
+            return
+        }
+
+        const resultado = await register({
+            nome: form.nome,
+            email: form.email,
+            senha: form.senha,
+            sexo: form.sexo,
+            dtNascimento: form.dataNascimento ? form.dataNascimento.toISOString().split('T')[0] : ''
+        })
+
+        if (resultado.success) {
+            showAlert('Sucesso', 'Conta criada com sucesso!', () => router.back())
+        } else {
+            showAlert('Erro no cadastro', resultado.error as string)
+        }
     }
 
     return (
@@ -95,8 +101,8 @@ export default function Register() {
                 <Text style={styles.sectionTitle}>Nome</Text>
                 <Input
                     placeholder="Nome"
-                    onChangeText={setNome}
-                    value={nome}
+                    onChangeText={text => setForm(prev => ({ ...prev, nome: text }))}
+                    value={form.nome}
                     editable={!carregando}
                 />
 
@@ -104,8 +110,8 @@ export default function Register() {
                 <Text style={styles.sectionTitle}>E-mail</Text>
                 <Input
                     placeholder="E-mail"
-                    onChangeText={setEmail}
-                    value={email}
+                    onChangeText={text => setForm(prev => ({ ...prev, email: text }))}
+                    value={form.email}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     editable={!carregando}
@@ -122,16 +128,16 @@ export default function Register() {
                 >
                     <Input
                         placeholder="Data de Nascimento"
-                        value={dataNascimento ? formatarData(dataNascimento) : ''}
+                        value={form.dataNascimento ? formatarData(form.dataNascimento) : ''}
                         editable={false}
                         pointerEvents="none"
-                        style={{ color: '#5c503a' }} 
+                        style={{ color: '#5c503a' }}
                     />
                 </TouchableOpacity>
 
                 {showDatePicker && (
                     <DateTimePicker
-                        value={dataNascimento || new Date()}
+                        value={form.dataNascimento || new Date()}
                         mode="date"
                         display="spinner"
                         themeVariant="light"
@@ -144,26 +150,26 @@ export default function Register() {
                 <Text style={styles.sectionTitle}>Sexo</Text>
                 <View style={styles.sexoContainer}>
                     <TouchableOpacity
-                        style={[styles.sexoButton, sexo === 'M' && styles.sexoButtonSelected]}
+                        style={[styles.sexoButton, form.sexo === 'M' && styles.sexoButtonSelected]}
                         onPress={() => {
                             Keyboard.dismiss()
-                            setSexo('M')
+                            setForm(prev => ({ ...prev, sexo: 'M' }))
                         }}
                         disabled={carregando}
                     >
-                        <Text style={[styles.sexoText, sexo === 'M' && styles.sexoTextSelected]}>
+                        <Text style={[styles.sexoText, form.sexo === 'M' && styles.sexoTextSelected]}>
                             Masculino
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.sexoButton, sexo === 'F' && styles.sexoButtonSelected]}
+                        style={[styles.sexoButton, form.sexo === 'F' && styles.sexoButtonSelected]}
                         onPress={() => {
                             Keyboard.dismiss()
-                            setSexo('F')
+                            setForm(prev => ({ ...prev, sexo: 'F' }))
                         }}
                         disabled={carregando}
                     >
-                        <Text style={[styles.sexoText, sexo === 'F' && styles.sexoTextSelected]}>
+                        <Text style={[styles.sexoText, form.sexo === 'F' && styles.sexoTextSelected]}>
                             Feminino
                         </Text>
                     </TouchableOpacity>
@@ -173,8 +179,8 @@ export default function Register() {
                 <Text style={styles.sectionTitle}>Senha</Text>
                 <Input
                     placeholder="Senha"
-                    onChangeText={setSenha}
-                    value={senha}
+                    onChangeText={text => setForm(prev => ({ ...prev, senha: text }))}
+                    value={form.senha}
                     secureTextEntry
                     editable={!carregando}
                 />
@@ -183,8 +189,8 @@ export default function Register() {
                 <Text style={styles.sectionTitle}>Confirme a senha</Text>
                 <Input
                     placeholder="Confirme sua senha"
-                    onChangeText={setConfirmarSenha}
-                    value={confirmarSenha}
+                    onChangeText={text => setForm(prev => ({ ...prev, confirmarSenha: text }))}
+                    value={form.confirmarSenha}
                     secureTextEntry
                     editable={!carregando}
                 />
@@ -209,6 +215,7 @@ export default function Register() {
                         </Text>
                     </Text>
                 </View>
+
                 <CustomModal
                     visible={modalVisible}
                     onClose={() => setModalVisible(false)}
@@ -243,49 +250,6 @@ export default function Register() {
         </ScreenContainer>
     )
 }
-
-const termosUsoTexto = `
-TERMOS DE USO DO INTUITIVE
-
-1. ACEITAÇÃO DOS TERMOS
-Ao criar uma conta no Intuitive, você concorda com estes Termos de Uso e com nossa Política de Privacidade.
-
-2. SERVIÇOS OFERECIDOS
-----------------------
-3. CADASTRO
-----------------------
-4. RESPONSABILIDADES
-----------------------
-5. PROPRIEDADE INTELECTUAL
-----------------------
-6. LIMITAÇÃO DE RESPONSABILIDADE
-----------------------
-7. ALTERAÇÕES NOS TERMOS
-----------------------
-8. LEI APLICÁVEL
-----------------------
-`
-
-const politicaPrivacidadeTexto = `
-POLÍTICA DE PRIVACIDADE DO INTUITIVE
-
-1. INFORMAÇÕES COLETADAS
-----------------------
-2. USO DAS INFORMAÇÕES
-----------------------
-3. COMPARTILHAMENTO DE INFORMAÇÕES
-----------------------
-4. SEGURANÇA
-----------------------
-5. SEUS DIREITOS
-----------------------
-6. RETENÇÃO DE DADOS
-----------------------
-7. ALTERAÇÕES
-----------------------
-8. CONTATO
-----------------------
-`
 
 const styles = StyleSheet.create({
     simpleBackButton: {

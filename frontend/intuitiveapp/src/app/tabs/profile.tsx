@@ -13,10 +13,8 @@ import { useAlert } from '../../hooks/useAlert'
 import { ScreenContainer } from '../../components/screenContainer'
 
 export default function Profile() {
-    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
-    const { showConfirm, hideConfirm, confirmVisible, confirmConfig } = useAlert()
-
-    const [editMode, setEditMode] = useState(false)
+    const { showAlert, showConfirm, hideAlert, hideConfirm, alertVisible, confirmVisible, alertConfig, confirmConfig } = useAlert()
+    const [modoEdicao, setModoEdicao] = useState(false)
     const [nome, setNome] = useState('')
     const [email, setEmail] = useState('')
     const [senhaAtual, setSenhaAtual] = useState('')
@@ -24,15 +22,6 @@ export default function Profile() {
     const [confirmarSenha, setConfirmarSenha] = useState('')
     const [carregando, setCarregando] = useState(false)
     const { usuario, logout, carregando: carregandoAuth, updateUser } = useAuth()
-
-    const handleLogout = async () => {
-        try {
-            await logout()
-            router.replace('/')
-        } catch (error) {
-            showAlert('Erro', 'Não foi possível fazer logout')
-        }
-    }
 
     useEffect(() => {
         if (usuario && typeof usuario === 'object') {
@@ -54,6 +43,15 @@ export default function Profile() {
                 </View>
             </SafeAreaView>
         )
+    }
+
+    const handleLogout = async () => {
+        try {
+            await logout()
+            router.replace('/login')
+        } catch (error) {
+            showAlert('Erro', 'Não foi possível fazer logout')
+        }
     }
 
     const handleSave = async () => {
@@ -86,7 +84,7 @@ export default function Profile() {
             } as Usuario)
 
             showAlert('Sucesso', 'Dados atualizados com sucesso!')
-            setEditMode(false)
+            setModoEdicao(false)
             setNovaSenha('')
             setConfirmarSenha('')
         } catch (error: any) {
@@ -112,9 +110,9 @@ export default function Profile() {
                         setCarregando(true)
                         try {
                             await authService.deleteUser(usuario?.email || '')
-                            showAlert('Conta excluída', 'Sua conta foi excluída com sucesso.')
-                            logout()
-                            router.replace('/')
+                            showAlert('Exclusão de Conta', 'Sua conta está sendo excluída.', () => {
+                                handleLogout()
+                            })
                         } catch (error: any) {
                             showAlert('Erro', error.message || 'Não foi possível excluir a conta.')
                         } finally {
@@ -158,8 +156,8 @@ export default function Profile() {
                     placeholder="Seu nome completo"
                     onChangeText={setNome}
                     value={nome}
-                    editable={editMode}
-                    style={!editMode ? styles.disabledInput : styles.input}
+                    editable={modoEdicao}
+                    style={!modoEdicao ? styles.disabledInput : styles.input}
                 />
 
                 {/* email */}
@@ -170,8 +168,8 @@ export default function Profile() {
                     value={email}
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    editable={editMode}
-                    style={!editMode ? styles.disabledInput : styles.input}
+                    editable={modoEdicao}
+                    style={!modoEdicao ? styles.disabledInput : styles.input}
                 />
 
                 {/* senha atual (só visualização) */}
@@ -184,7 +182,7 @@ export default function Profile() {
                 />
 
                 {/* nova senha (só p/ modo edição) */}
-                {editMode && (
+                {modoEdicao && (
                     <>
                         <Text style={styles.sectionTitle}>Nova Senha</Text>
                         <Input
@@ -206,7 +204,7 @@ export default function Profile() {
                     </>
                 )}
 
-                {editMode ? (
+                {modoEdicao ? (
                     <View style={styles.buttonContainer}>
                         <Button
                             title={carregando ? "Salvando..." : "Salvar Alterações"}
@@ -217,7 +215,7 @@ export default function Profile() {
                         <Button
                             title="Cancelar"
                             onPress={() => {
-                                setEditMode(false)
+                                setModoEdicao(false)
                                 setNovaSenha('')
                                 setConfirmarSenha('')
                                 if (usuario) {
@@ -232,7 +230,7 @@ export default function Profile() {
                 ) : (
                     <Button
                         title="Alterar Cadastro"
-                        onPress={() => setEditMode(true)}
+                        onPress={() => setModoEdicao(true)}
                         style={styles.editButton}
                         disabled={carregando}
                     />

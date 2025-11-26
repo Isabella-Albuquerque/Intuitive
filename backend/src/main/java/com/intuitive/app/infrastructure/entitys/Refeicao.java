@@ -2,6 +2,8 @@ package com.intuitive.app.infrastructure.entitys;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -16,6 +18,11 @@ import java.sql.Time;
 @Builder
 @Table(name = "refeicao")
 @Entity
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "idRefeicao"
+)
+
 public class Refeicao {
 
     @Id

@@ -1,4 +1,5 @@
 import api from './api'
+import { extrairMensagemErro } from './authService'
 
 export interface Refeicao {
   idRefeicao?: number
@@ -12,13 +13,11 @@ export interface Refeicao {
   distracoes?: string
   emocoesAntes?: string
   emocoesDepois?: string
-  usuario: UsuarioRef
-}
-
-export interface UsuarioRef {
-  id: number
-  nome?: string
-  email?: string
+  usuario: {
+    id: number
+    nome?: string
+    email?: string
+  }
 }
 
 export const refeicaoService = {
@@ -27,20 +26,7 @@ export const refeicaoService = {
       const response = await api.post('/refeicao', refeicao)
       return response.data
     } catch (error: any) {
-      if (error.response?.data) {
-        const erroBackend = error.response.data
-
-        if (typeof erroBackend === 'string') {
-          throw new Error(erroBackend)
-        }
-        else if (erroBackend.message) {
-          throw new Error(erroBackend.message)
-        }
-        else {
-          throw new Error('Erro ao cadastrar refeição')
-        }
-      }
-      throw new Error(error.message || 'Erro ao cadastrar refeição')
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao cadastrar refeição') })
     }
   },
 
@@ -49,32 +35,26 @@ export const refeicaoService = {
       const response = await api.get(`/refeicao/${id}`)
       return response.data
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao consultar refeição')
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao consultar refeição') })
     }
   },
 
   async getHistoricoMensal(usuarioId: number, mes: number, ano: number): Promise<Refeicao[]> {
     try {
-      const response = await api.get('/refeicao/historico', {
-        params: { usuarioId, mes, ano }
-      })
+      const response = await api.get('/refeicao/historico', { params: { usuarioId, mes, ano } })
       return response.data
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao carregar histórico')
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao carregar histórico') })
     }
   },
 
   async getMesesDisponiveis(usuarioId: number, ano: number) {
-    const response = await api.get('/refeicao/meses-disponiveis', {
-      params: { usuarioId, ano }
-    })
-    return response.data
+    try {
+      const response = await api.get('/refeicao/meses-disponiveis', { params: { usuarioId, ano } })
+      return response.data
+    } catch (error: any) {
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao carregar meses disponíveis') })
+    }
   },
 
   async atualizar(id: number, refeicao: Refeicao): Promise<Refeicao> {
@@ -82,10 +62,7 @@ export const refeicaoService = {
       const response = await api.put(`/refeicao/${id}`, refeicao)
       return response.data
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao atualizar refeição')
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao atualizar refeição') })
     }
   },
 
@@ -93,10 +70,7 @@ export const refeicaoService = {
     try {
       await api.delete(`/refeicao/${idRefeicao}`)
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao excluir refeição')
+      return Promise.reject({ message: extrairMensagemErro(error, 'Erro ao excluir refeição') })
     }
   }
 }

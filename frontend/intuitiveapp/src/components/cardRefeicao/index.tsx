@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native'
-import { Refeicao } from '../../../services/refeicaoService'
+import { Refeicao } from '../../services/refeicaoService'
 import { styles } from './styles'
 
 interface CardRefeicaoProps {

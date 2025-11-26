@@ -9,35 +9,29 @@ export interface Usuario {
   dtNascimento: string
 }
 
+export const extrairMensagemErro = (error: any, mensagemPadrao = 'Erro desconhecido'): string => {
+  console.error('Erro completo:', error)
+
+  if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+    return 'Problema de conexão. Tente novamente.'
+  }
+
+  if (error.response?.data) {
+    if (typeof error.response.data === 'string') return error.response.data
+    if (error.response.data.message) return error.response.data.message
+    return JSON.stringify(error.response.data)
+  }
+
+  return error.message || mensagemPadrao
+}
+
 export const authService = {
   async login(email: string, senha: string): Promise<Usuario> {
     try {
       const response = await api.post('/login', { email, senha })
       return response.data
     } catch (error: any) {
-      console.log('erro completo:', error)
-
-      let errorMessage = 'Erro ao fazer login'
-
-      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        errorMessage = 'Problema de conexão. Tente novamente.'
-      }
-      else if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data
-        }
-        else if (error.response.data.message) {
-          errorMessage = error.response.data.message
-        }
-        else {
-          errorMessage = JSON.stringify(error.response.data)
-        }
-      }
-      else if (error.message) {
-        errorMessage = error.message
-      }
-
-      throw new Error(errorMessage)
+      throw new Error(extrairMensagemErro(error, 'Erro ao fazer login'))
     }
   },
 
@@ -45,26 +39,7 @@ export const authService = {
     try {
       await api.post('/', usuario)
     } catch (error: any) {
-      let errorMessage = 'Erro ao registrar'
-
-      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        errorMessage = 'Problema de conexão. Tente novamente.'
-      }
-      else if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data
-        }
-        else if (error.response.data.message) {
-          errorMessage = error.response.data.message
-        }
-        else {
-          errorMessage = JSON.stringify(error.response.data)
-        }
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-
-      throw new Error(errorMessage)
+      throw new Error(extrairMensagemErro(error, 'Erro ao registrar usuário'))
     }
   },
 
@@ -72,21 +47,15 @@ export const authService = {
     try {
       await api.put(`/?email=${encodeURIComponent(email)}`, usuario)
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao atualizar usuário')
+      throw new Error(extrairMensagemErro(error, 'Erro ao atualizar usuário'))
     }
   },
 
   async deleteUser(email: string): Promise<void> {
     try {
-      await api.delete(`/?email=${encodeURIComponent(email)}`)
+      await api.delete('/', { params: { email } })
     } catch (error: any) {
-      if (error.response?.data) {
-        throw new Error(error.response.data)
-      }
-      throw new Error(error.message || 'Erro ao deletar usuário')
+      throw new Error(extrairMensagemErro(error, 'Erro ao deletar usuário'))
     }
   }
 }

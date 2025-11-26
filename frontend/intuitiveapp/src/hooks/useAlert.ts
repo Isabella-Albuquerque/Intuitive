@@ -6,18 +6,30 @@ interface AlertButton {
     onPress?: () => void
 }
 
+interface AlertConfig {
+    title: string
+    message: string
+    onConfirm: (() => void) | null
+}
+
+interface ConfirmConfig {
+    title: string
+    message: string
+    buttons: AlertButton[]
+}
+
 export function useAlert() {
     const [alertVisible, setAlertVisible] = useState(false)
     const [confirmVisible, setConfirmVisible] = useState(false)
-    const [alertConfig, setAlertConfig] = useState({
+    const [alertConfig, setAlertConfig] = useState<AlertConfig>({
         title: '',
         message: '',
-        onConfirm: null as (() => void) | null
+        onConfirm: null
     })
-    const [confirmConfig, setConfirmConfig] = useState({
+    const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig>({
         title: '',
         message: '',
-        buttons: [] as AlertButton[]
+        buttons: []
     })
 
     const showAlert = (title: string, message: string, onConfirm?: () => void) => {
@@ -31,15 +43,11 @@ export function useAlert() {
     }
 
     const hideAlert = () => {
-        if (alertConfig.onConfirm) {
-            alertConfig.onConfirm()
-        }
+        if (alertConfig.onConfirm) alertConfig.onConfirm()
         setAlertVisible(false)
     }
 
-    const hideConfirm = () => {
-        setConfirmVisible(false)
-    }
+    const hideConfirm = () => setConfirmVisible(false)
 
     return {
         showAlert,
