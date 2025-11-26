@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useAuth } from '../hooks/useAuth'
@@ -19,16 +18,10 @@ interface OpcaoEmocao {
     value: string
 }
 
-export default function DetalhesRefeicao() {
-    const { showAlert, hideAlert, alertVisible, alertConfig } = useAlert()
-    const { showConfirm, hideConfirm, confirmVisible, confirmConfig } = useAlert()
-
-    const { id } = useLocalSearchParams()
+export default function RegisterRefeicao() {
+    const { showAlert, showConfirm, hideAlert, hideConfirm, alertVisible, confirmVisible, alertConfig, confirmConfig } = useAlert()
     const { usuario } = useAuth()
-    const [editMode, setEditMode] = useState(false)
     const [carregando, setCarregando] = useState(false)
-    const [carregandoDados, setCarregandoDados] = useState(true)
-
     const [data, setData] = useState(new Date())
     const [horario, setHorario] = useState(new Date())
     const [tipo, setTipo] = useState('')
@@ -39,7 +32,6 @@ export default function DetalhesRefeicao() {
     const [distracoes, setDistracoes] = useState('')
     const [emocoesAntes, setEmocoesAntes] = useState('')
     const [emocoesDepois, setEmocoesDepois] = useState('')
-
     const [showDatePicker, setShowDatePicker] = useState(false)
     const [showTimePicker, setShowTimePicker] = useState(false)
 
@@ -57,50 +49,24 @@ export default function DetalhesRefeicao() {
         { label: '🥱 Entediado', value: 'Entediado' }
     ]
 
-    const opcoesRefeicao = ['Café da manhã', 'Almoço', 'Jantar', 'Lanche']
+    const opcoesRefeicao = [
+        'Café da manhã',
+        'Almoço',
+        'Jantar',
+        'Lanche'
+    ]
 
-    useEffect(() => {
-        carregarRefeicao()
-    }, [id])
-
-    const carregarRefeicao = async () => {
-        if (!id) return
-
-        try {
-            setCarregandoDados(true)
-            const refeicao = await refeicaoService.consultarPorId(Number(id))
-
-            if (refeicao) {
-                setData(new Date(refeicao.data + 'T00:00:00'))
-                setHorario(new Date(`2000-01-01T${refeicao.horario}`))
-                setTipo(refeicao.tipo)
-                setDescricao(refeicao.descricao || '')
-                setNivelFome(refeicao.nivelFome)
-                setNivelSaciedade(refeicao.nivelSaciedade)
-                setCompanhia(refeicao.companhia || '')
-                setDistracoes(refeicao.distracoes || '')
-                setEmocoesAntes(refeicao.emocoesAntes || '')
-                setEmocoesDepois(refeicao.emocoesDepois || '')
-            }
-        } catch (error: any) {
-            showAlert('Erro', error.message || 'Não foi possível carregar os dados da refeição')
-        } finally {
-            setCarregandoDados(false)
-        }
-    }
-
-    const handleAtualizarRefeicao = async () => {
-        if (!usuario?.id || !id) {
-            showAlert('Erro', 'Usuário ou refeição não identificada')
+    const handleCadastrarRefeicao = async () => {
+        if (!usuario?.id) {
+            showAlert('Erro', 'Usuário não identificado')
             return
         }
 
         try {
             setCarregando(true)
 
-            const refeicaoAtualizada: Refeicao = {
-                idRefeicao: Number(id),
-                data: data.toISOString().split('T')[0],
+            const novaRefeicao: Omit<Refeicao, 'idRefeicao'> = {
+                data: data.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }),
                 horario: horario.toTimeString().split(' ')[0],
                 tipo: tipo,
                 descricao: descricao,
@@ -113,92 +79,35 @@ export default function DetalhesRefeicao() {
                 usuario: { id: usuario.id }
             }
 
-            await refeicaoService.atualizar(Number(id), refeicaoAtualizada)
-
-            showAlert('Sucesso', 'Refeição atualizada!', () => {
-                setEditMode(false)
-                carregarRefeicao()
+            await refeicaoService.cadastrar(novaRefeicao)
+            showAlert('Sucesso', 'Refeição registrada!', () => {
+                router.back()
             })
-
         } catch (error: any) {
-            showAlert('Erro', error.message || 'Erro ao atualizar refeição')
+            showAlert('Erro', error.message || 'Erro ao registrar refeição')
         } finally {
             setCarregando(false)
         }
     }
 
-    const handleExcluirRefeicao = () => {
-        showConfirm(
-            'Excluir Refeição',
-            'Tem certeza que deseja excluir esta refeição?',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel' as const,
-                    onPress: () => console.log('Cancelado')
-                },
-                {
-                    text: 'Excluir',
-                    style: 'destructive' as const,
-                    onPress: async () => {
-                        try {
-                            await refeicaoService.excluir(Number(id))
-                            showAlert('Sucesso', 'Refeição excluída com sucesso!', () => router.back())
-                        } catch (error: any) {
-                            showAlert('Erro', error.message || 'Erro ao excluir refeição')
-                        }
-                    }
-                }
-            ]
-        )
-    }
-
-    if (carregandoDados) {
-        return (
-            <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-                <View style={styles.loadingContainer}>
-                    <Text style={styles.loadingText}>Carregando...</Text>
-                </View>
-            </SafeAreaView>
-        )
-    }
-
     return (
         <ScreenContainer>
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#2e6480" />
-                </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Ionicons name="arrow-back" size={24} color="#2e6480" />
+            </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.editButtonHeader}
-                    onPress={() => setEditMode(!editMode)}
-                    disabled={carregando}
-                >
-                    <Text style={styles.editButtonText}>
-                        {editMode ? 'Cancelar' : 'Editar'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            <Text style={styles.title}>
-                {editMode ? 'Editar Refeição' : 'Detalhes da Refeição'}
-            </Text>
+            <Text style={styles.title}>Registrar Refeição</Text>
 
             {/* data e hora */}
             <View style={styles.rowCompact}>
                 <View style={styles.halfInputCompact}>
                     <Text style={styles.label}>Data *</Text>
                     <TouchableOpacity
-                        onPress={() => editMode && setShowDatePicker(true)}
-                        style={[
-                            styles.dataHorarioButtonCompact,
-                            !editMode && styles.disabledField
-                        ]}
-                        disabled={!editMode}
+                        onPress={() => setShowDatePicker(true)}
+                        style={styles.dataHorarioButtonCompact}
                     >
                         <Text style={styles.dataHorarioText}>
                             {data.toLocaleDateString('pt-BR')}
@@ -209,12 +118,8 @@ export default function DetalhesRefeicao() {
                 <View style={styles.halfInputCompact}>
                     <Text style={styles.label}>Horário *</Text>
                     <TouchableOpacity
-                        onPress={() => editMode && setShowTimePicker(true)}
-                        style={[
-                            styles.dataHorarioButtonCompact,
-                            !editMode && styles.disabledField
-                        ]}
-                        disabled={!editMode}
+                        onPress={() => setShowTimePicker(true)}
+                        style={styles.dataHorarioButtonCompact}
                     >
                         <Text style={styles.dataHorarioText}>
                             {horario.toLocaleTimeString('pt-BR', {
@@ -259,11 +164,9 @@ export default function DetalhesRefeicao() {
                         key={opcao}
                         style={[
                             styles.tipoButton,
-                            tipo === opcao && styles.tipoButtonSelected,
-                            !editMode && styles.disabledField
+                            tipo === opcao && styles.tipoButtonSelected
                         ]}
-                        onPress={() => editMode && setTipo(opcao)}
-                        disabled={!editMode}
+                        onPress={() => setTipo(opcao)}
                     >
                         <Text style={[
                             styles.tipoText,
@@ -277,18 +180,18 @@ export default function DetalhesRefeicao() {
 
             {/* descrição */}
             <Text style={styles.label}>O que você comeu?</Text>
-            <Input
-                placeholder="Escreva brevemente o que você comeu"
-                value={descricao}
-                onChangeText={setDescricao}
-                multiline
-                numberOfLines={3}
-                multilineHeight={100}
-                textAlignVertical="top"
-                textAlign="left"
-                editable={editMode}
-                style={!editMode ? styles.disabledInput : undefined}
-            />
+            <View style={styles.inputContainer}>
+                <Input
+                    placeholder="Escreva brevemente o que você comeu"
+                    value={descricao}
+                    onChangeText={setDescricao}
+                    multiline
+                    numberOfLines={3}
+                    multilineHeight={100}
+                    textAlignVertical="top"
+                    textAlign="left"
+                />
+            </View>
 
             {/* níveis de fome/saciedade */}
             <Text style={styles.label}>Nível de fome antes*</Text>
@@ -298,14 +201,12 @@ export default function DetalhesRefeicao() {
                         key={nivel}
                         style={[
                             styles.nivelButton,
-                            nivelFome === nivel && styles.nivelButtonSelected,
-                            !editMode && styles.disabledField
+                            nivelFome === nivel && styles.nivelButtonSelected
                         ]}
                         onPress={() => {
                             Keyboard.dismiss()
-                            if (editMode) setNivelFome(nivel)
+                            setNivelFome(nivel)
                         }}
-                        disabled={!editMode}
                     >
                         <Text style={[
                             styles.nivelText,
@@ -324,11 +225,9 @@ export default function DetalhesRefeicao() {
                         key={nivel}
                         style={[
                             styles.nivelButton,
-                            nivelSaciedade === nivel && styles.nivelButtonSelected,
-                            !editMode && styles.disabledField
+                            nivelSaciedade === nivel && styles.nivelButtonSelected
                         ]}
-                        onPress={() => editMode && setNivelSaciedade(nivel)}
-                        disabled={!editMode}
+                        onPress={() => setNivelSaciedade(nivel)}
                     >
                         <Text style={[
                             styles.nivelText,
@@ -350,11 +249,7 @@ export default function DetalhesRefeicao() {
                         selectedValue={emocoesAntes}
                         onValueChange={setEmocoesAntes}
                         placeholder="Selecionar"
-                        disabled={!editMode}
-                        style={{
-                            ...styles.emocaoDropdown,
-                            ...(!editMode && styles.disabledField)
-                        }}
+                        style={styles.emocaoDropdown}
                     />
                 </View>
 
@@ -365,11 +260,7 @@ export default function DetalhesRefeicao() {
                         selectedValue={emocoesDepois}
                         onValueChange={setEmocoesDepois}
                         placeholder="Selecionar"
-                        disabled={!editMode}
-                        style={{
-                            ...styles.emocaoDropdown,
-                            ...(!editMode && styles.disabledField)
-                        }}
+                        style={styles.emocaoDropdown}
                     />
                 </View>
             </View>
@@ -378,34 +269,18 @@ export default function DetalhesRefeicao() {
             <Text style={styles.label}>Companhia</Text>
             <View style={styles.opcaoContainer}>
                 <TouchableOpacity
-                    style={[
-                        styles.opcaoButton,
-                        companhia === 'Sim' && styles.opcaoButtonSelected,
-                        !editMode && styles.disabledField
-                    ]}
-                    onPress={() => editMode && setCompanhia('Sim')}
-                    disabled={!editMode}
+                    style={[styles.opcaoButton, companhia === 'Sim' && styles.opcaoButtonSelected]}
+                    onPress={() => setCompanhia('Sim')}
                 >
-                    <Text style={[
-                        styles.opcaoText,
-                        companhia === 'Sim' && styles.opcaoTextSelected
-                    ]}>
+                    <Text style={[styles.opcaoText, companhia === 'Sim' && styles.opcaoTextSelected]}>
                         Sim
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[
-                        styles.opcaoButton,
-                        companhia === 'Não' && styles.opcaoButtonSelected,
-                        !editMode && styles.disabledField
-                    ]}
-                    onPress={() => editMode && setCompanhia('Não')}
-                    disabled={!editMode}
+                    style={[styles.opcaoButton, companhia === 'Não' && styles.opcaoButtonSelected]}
+                    onPress={() => setCompanhia('Não')}
                 >
-                    <Text style={[
-                        styles.opcaoText,
-                        companhia === 'Não' && styles.opcaoTextSelected
-                    ]}>
+                    <Text style={[styles.opcaoText, companhia === 'Não' && styles.opcaoTextSelected]}>
                         Não
                     </Text>
                 </TouchableOpacity>
@@ -415,56 +290,29 @@ export default function DetalhesRefeicao() {
             <Text style={styles.label}>Distrações</Text>
             <View style={styles.opcaoContainer}>
                 <TouchableOpacity
-                    style={[
-                        styles.opcaoButton,
-                        distracoes === 'Sim' && styles.opcaoButtonSelected,
-                        !editMode && styles.disabledField
-                    ]}
-                    onPress={() => editMode && setDistracoes('Sim')}
-                    disabled={!editMode}
+                    style={[styles.opcaoButton, distracoes === 'Sim' && styles.opcaoButtonSelected]}
+                    onPress={() => setDistracoes('Sim')}
                 >
-                    <Text style={[
-                        styles.opcaoText,
-                        distracoes === 'Sim' && styles.opcaoTextSelected
-                    ]}>
+                    <Text style={[styles.opcaoText, distracoes === 'Sim' && styles.opcaoTextSelected]}>
                         Sim
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[
-                        styles.opcaoButton,
-                        distracoes === 'Não' && styles.opcaoButtonSelected,
-                        !editMode && styles.disabledField
-                    ]}
-                    onPress={() => editMode && setDistracoes('Não')}
-                    disabled={!editMode}
+                    style={[styles.opcaoButton, distracoes === 'Não' && styles.opcaoButtonSelected]}
+                    onPress={() => setDistracoes('Não')}
                 >
-                    <Text style={[
-                        styles.opcaoText,
-                        distracoes === 'Não' && styles.opcaoTextSelected
-                    ]}>
+                    <Text style={[styles.opcaoText, distracoes === 'Não' && styles.opcaoTextSelected]}>
                         Não
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* atualizar/excluir */}
-            {editMode ? (
-                <Button
-                    title={carregando ? "Atualizando..." : "Atualizar Refeição"}
-                    onPress={handleAtualizarRefeicao}
-                    style={styles.updateButton}
-                    disabled={carregando}
-                />
-            ) : (
-                <TouchableOpacity
-                    onPress={handleExcluirRefeicao}
-                    style={styles.deleteButton}
-                >
-                    <Text style={styles.deleteButtonText}>Excluir Refeição</Text>
-                </TouchableOpacity>
-            )}
-
+            <Button
+                title={carregando ? "Registrando..." : "Registrar Refeição"}
+                onPress={handleCadastrarRefeicao}
+                style={styles.registerButton}
+                disabled={carregando}
+            />
             <CustomAlert
                 visible={alertVisible}
                 title={alertConfig.title}
@@ -493,20 +341,14 @@ const styles = StyleSheet.create({
         padding: 24,
         backgroundColor: '#fafafa'
     },
-    header: {
+    backButton: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 20
     },
-    backButton: {
-        padding: 8
-    },
-    editButtonHeader: {
-        padding: 8
-    },
-    editButtonText: {
+    backText: {
         color: '#2e6480',
+        marginLeft: 8,
         fontSize: 16,
         fontFamily: 'Poppins-Medium'
     },
@@ -515,40 +357,7 @@ const styles = StyleSheet.create({
         color: '#5c503a',
         textAlign: 'center',
         fontFamily: 'Poppins-Medium',
-        paddingTop: 2,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        fontSize: 16,
-        color: '#666',
-        fontFamily: 'Poppins-Regular'
-    },
-    disabledField: {
-        opacity: 0.6,
-    },
-    disabledInput: {
-        backgroundColor: '#f0f0f0',
-        opacity: 0.7,
-    },
-    updateButton: {
-        marginTop: 20,
-        marginBottom: 20,
-        backgroundColor: '#4CAF50'
-    },
-    deleteButton: {
-        alignItems: 'center',
-        padding: 16,
-        marginTop: 20,
-    },
-    deleteButtonText: {
-        color: '#f44336',
-        fontSize: 16,
-        textDecorationLine: 'underline',
-        fontFamily: 'Poppins-Regular'
+        paddingTop: 2
     },
     rowCompact: {
         flexDirection: 'row',
@@ -556,7 +365,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     halfInputCompact: {
-        width: '48%',
+        width: '48%'
     },
     dataHorarioButtonCompact: {
         borderWidth: 1,
@@ -567,18 +376,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        minWidth: 100,
+        minWidth: 100
     },
     dataHorarioText: {
         fontSize: 16,
         color: '#333',
         fontFamily: 'Poppins-Regular',
-        textAlign: 'center',
+        textAlign: 'center'
     },
     tipoContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'space-between'
     },
     tipoButton: {
         width: '48%',
@@ -590,7 +399,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#2e6480',
-        marginBottom: 12,
+        marginBottom: 12
     },
     tipoButtonSelected: {
         borderColor: '#2e6480',
@@ -617,7 +426,6 @@ const styles = StyleSheet.create({
     inputContainer: {
         marginBottom: 10
     },
-
     nivelContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -667,7 +475,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Medium'
     },
     emocaoDropdown: {
-        width: '100%',
+        width: '100%'
     },
     opcaoContainer: {
         flexDirection: 'row',
@@ -696,7 +504,7 @@ const styles = StyleSheet.create({
     opcaoTextSelected: {
         color: '#2e6480',
         fontWeight: '500',
-        fontFamily: 'Poppins-Bold',
+        fontFamily: 'Poppins-Bold'
     },
     registerButton: {
         marginTop: 20,

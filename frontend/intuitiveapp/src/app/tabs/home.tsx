@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../hooks/useAuth'
 import { refeicaoService, Refeicao } from '../../services/refeicaoService'
-import { CardRefeicao } from '../../components/refeicao/cardRefeicao'
+import { CardRefeicao } from '../../components/cardRefeicao'
 import { useFocusEffect } from '@react-navigation/native'
 import { CustomAlert } from '../../components/customAlert'
 import { useAlert } from '../../hooks/useAlert'
@@ -48,7 +48,7 @@ export default function Home() {
     }
 
     const navegarParaCadastro = () => {
-        router.push('/registroRefeicao')
+        router.push('/registerRefeicao')
     }
 
     return (
@@ -77,7 +77,7 @@ export default function Home() {
                                 <CardRefeicao
                                     key={refeicao.idRefeicao}
                                     refeicao={refeicao}
-                                    onPress={() => router.push(`/detalhesRefeicao?id=${refeicao.idRefeicao}`)}
+                                    onPress={() => router.push(`/detailsRefeicao?id=${refeicao.idRefeicao}`)}
                                 />
                             ))
                         )}

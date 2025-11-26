@@ -7,10 +7,44 @@ interface LoginCredentials {
   senha: string
 }
 
+interface AuthResponseSuccess<T> {
+  success: true
+  data: T
+}
+
+interface AuthResponseError {
+  success: false
+  error: string
+}
+
+type AuthResponse<T = undefined> = AuthResponseSuccess<T> | AuthResponseError
+
 export const useAuth = () => {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+
+  const iniciarAcao = () => {
+    setCarregando(true)
+    setErro(null)
+  }
+
+  const tratarErro = <T,>(error: any, mensagemPadrao: string): AuthResponse<T> => {
+    const mensagem = error?.message || mensagemPadrao
+    setErro(mensagem)
+    setCarregando(false)
+    return { success: false, error: mensagem }
+  }
+
+  const salvarUsuario = async (user: Usuario) => {
+    setUsuario(user)
+    await AsyncStorage.setItem('@usuario', JSON.stringify(user))
+  }
+
+  const limparUsuario = async () => {
+    setUsuario(null)
+    await AsyncStorage.removeItem('@usuario')
+  }
 
   useEffect(() => {
     const carregarUsuarioSalvo = async () => {
@@ -29,52 +63,59 @@ export const useAuth = () => {
     carregarUsuarioSalvo()
   }, [])
 
-  const login = async (credentials: LoginCredentials) => {
-    setCarregando(true)
-    setErro(null)
+  const login = async ({ email, senha }: LoginCredentials): Promise<AuthResponse<Usuario>> => {
+    iniciarAcao()
 
     try {
-      const usuarioAutenticado = await authService.login(credentials.email, credentials.senha)
-      setUsuario(usuarioAutenticado)
-      await AsyncStorage.setItem('@usuario', JSON.stringify(usuarioAutenticado))
+      const usuarioAutenticado = await authService.login(email, senha)
+      await salvarUsuario(usuarioAutenticado)
       setCarregando(false)
       return { success: true, data: usuarioAutenticado }
-    } catch (error: any) {
-      const mensagemErro = error.message || 'Erro ao fazer login'
-      setErro(mensagemErro)
-      setCarregando(false)
-      return { success: false, error: mensagemErro }
+    } catch (error) {
+      return tratarErro<Usuario>(error, 'Erro ao fazer login')
     }
   }
 
-  const register = async (novoUsuario: Omit<Usuario, 'id'>) => {
-    setCarregando(true)
-    setErro(null)
+  const register = async (novoUsuario: Omit<Usuario, 'id'>): Promise<AuthResponse> => {
+    iniciarAcao()
 
     try {
       await authService.register(novoUsuario)
       const usuarioAutenticado = await authService.login(novoUsuario.email, novoUsuario.senha)
-      setUsuario(usuarioAutenticado)
-      await AsyncStorage.setItem('@usuario', JSON.stringify(usuarioAutenticado))
+
+      await salvarUsuario(usuarioAutenticado)
       setCarregando(false)
-      return { success: true }
-    } catch (error: any) {
-      const mensagemErro = error.message || 'Erro ao registrar usuário'
-      setErro(mensagemErro)
-      setCarregando(false)
-      return { success: false, error: mensagemErro }
+      return { success: true, data: undefined }
+    } catch (error) {
+      return tratarErro(error, 'Erro ao registrar usuário')
     }
   }
 
   const updateUser = async (usuarioAtualizado: Usuario) => {
-    setUsuario(usuarioAtualizado)
-    await AsyncStorage.setItem('@usuario', JSON.stringify(usuarioAtualizado))
+    try {
+      await salvarUsuario(usuarioAtualizado)
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error)
+      setErro('Erro ao atualizar usuário')
+    }
   }
 
   const logout = async () => {
-    setUsuario(null)
-    await AsyncStorage.removeItem('@usuario')
+    try {
+      await limparUsuario()
+    } catch (error) {
+      console.error('Erro ao remover usuário do armazenamento:', error)
+      setErro('Erro ao fazer logout')
+    }
   }
 
-  return { usuario, carregando, erro, login, register, logout, updateUser }
+  return {
+    usuario,
+    carregando,
+    erro,
+    login,
+    register,
+    logout,
+    updateUser,
+  }
 }
