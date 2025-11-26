@@ -1,6 +1,8 @@
 package com.intuitive.app.infrastructure.entitys;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +15,10 @@ import java.util.Date;
 @Builder
 @Table(name = "usuario")
 @Entity
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id"
+)
 
 public class Usuario {
     @Id
@@ -35,6 +41,13 @@ public class Usuario {
     @Temporal(TemporalType.DATE)
     @JsonFormat(pattern = "dd-MM-yyyy")
     private Date dtNascimento;
+
+    @OneToMany(
+        mappedBy = "usuario",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    private java.util.List<Refeicao> refeicoes;
 
 
 }
