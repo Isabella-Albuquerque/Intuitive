@@ -145,29 +145,31 @@ npx expo start
   - `business/` - Lógica de negócio
   - `controller/` - Controladores REST  
   - `DTO/` - Objetos de transferência de dados
-  - `entitys/` - Entidades JPA
-  - `repository/` - Repositórios de dados
+  - `infrastructure/` - Infraestrutura da aplicação
+    - `entitys/` - Entidades JPA
+    - `exception/` - Tratamento de exceções
+    - `repository/` - Repositórios de dados
 - `src/main/resources/`
   - `application.properties` - Configurações do banco
 - `pom.xml` - Dependências Maven
 
 **Frontend (React Native)**
+- `assets/` - Imagens e recursos
 - `src/`
   - `app/` - Navegação e telas
   - `components/` - Componentes reutilizáveis
-  - `services/` - Serviços de API
-  - `hooks/` - Hooks customizados
   - `constants/` - Constantes e configurações
-- `assets/` - Imagens e recursos
+  - `hooks/` - Hooks customizados
+  - `services/` - Serviços de API
 - `package.json` - Dependências Node.js
 
 ## 🚀 Deploy
 
-O projeto está deployado na plataforma **Railway**:
+O projeto está implantado na plataforma **Railway**:
 - **Backend**: Disponível via Railway
-- **Frontend**: Build APK via Expo EAS
 - **Banco de Dados**: MySQL hospedado no Railway
-
+- **Frontend**: Build APK via Expo EAS
+  
 ## 📊 Status do Projeto
 
 ✅ **MVP Concluído** - Versão funcional para apresentação do TCC
